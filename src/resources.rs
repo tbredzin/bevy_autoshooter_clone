@@ -2,9 +2,18 @@ use bevy::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 200.0;
 pub const ENEMY_SPEED: f32 = 80.0;
-pub const BULLET_SPEED: f32 = 400.0;
+pub const BULLET_SPEED: f32 = 500.0;
 pub const FIRE_RATE: f32 = 0.5;
 pub const WAVE_DURATION: f32 = 20.0;
+pub const SPAWN_RATE: f32 = 0.5;
+
+pub const GAME_AREA: Rect = Rect {
+    min: Vec2 {
+        x: -600.0,
+        y: -300.0,
+    },
+    max: Vec2 { x: 600.0, y: 300.0 },
+};
 
 #[derive(Resource)]
 pub struct GameState {

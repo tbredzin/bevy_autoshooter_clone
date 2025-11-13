@@ -1,6 +1,6 @@
-use bevy::prelude::*;
 use crate::components::{Bullet, Enemy, Player};
 use crate::resources::GameState;
+use bevy::prelude::*;
 
 pub fn check_bullet_enemy_collision(
     mut commands: Commands,
@@ -10,7 +10,9 @@ pub fn check_bullet_enemy_collision(
 ) {
     for (bullet_entity, bullet_transform) in &bullet_query {
         for (enemy_entity, enemy_transform, mut enemy) in &mut enemy_query {
-            let distance = bullet_transform.translation.distance(enemy_transform.translation);
+            let distance = bullet_transform
+                .translation
+                .distance(enemy_transform.translation);
             if distance < 20.0 {
                 commands.entity(bullet_entity).despawn();
                 enemy.health -= 1.0;
@@ -38,7 +40,9 @@ pub fn check_player_enemy_collision(
 ) {
     if let Ok(player_transform) = player_query.single() {
         for enemy_transform in &enemy_query {
-            let distance = player_transform.translation.distance(enemy_transform.translation);
+            let distance = player_transform
+                .translation
+                .distance(enemy_transform.translation);
             if distance < 35.0 {
                 game_state.health -= 10.0 * time.delta_secs();
                 game_state.health = game_state.health.max(0.0);

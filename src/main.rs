@@ -2,11 +2,11 @@ mod components;
 mod resources;
 mod systems;
 
+use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
-use bevy::dev_tools::fps_overlay::{FpsOverlayPlugin, FpsOverlayConfig};
-use bevy::winit::{WinitSettings, UpdateMode};
-use std::time::Duration;
+use bevy::winit::{UpdateMode, WinitSettings};
 use resources::GameState;
+use std::time::Duration;
 use systems::*;
 
 fn main() {
@@ -30,17 +30,20 @@ fn main() {
         })
         .init_resource::<GameState>()
         .add_systems(Startup, setup::setup)
-        .add_systems(Update, (
-            player::player_movement,
-            combat::auto_shoot,
-            combat::move_bullets,
-            enemy::spawn_enemies,
-            enemy::move_enemies,
-            collision::check_bullet_enemy_collision,
-            collision::check_player_enemy_collision,
-            game::update_wave_timer,
-            game::cleanup_offscreen,
-            ui::update_ui,
-        ))
+        .add_systems(
+            Update,
+            (
+                player::player_movement,
+                combat::auto_shoot,
+                enemy::spawn_enemies,
+                combat::move_bullets,
+                enemy::move_enemies,
+                collision::check_bullet_enemy_collision,
+                collision::check_player_enemy_collision,
+                game::update_wave_timer,
+                game::out_of_bounds_system,
+                ui::update_ui,
+            ),
+        )
         .run();
 }

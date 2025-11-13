@@ -1,6 +1,6 @@
+use crate::components::{Bullet, Enemy, Player};
+use crate::resources::{BULLET_SPEED, FIRE_RATE, GameState};
 use bevy::prelude::*;
-use crate::components::{Player, Enemy, Bullet};
-use crate::resources::{GameState, FIRE_RATE, BULLET_SPEED};
 
 pub fn auto_shoot(
     mut commands: Commands,
@@ -20,13 +20,11 @@ pub fn auto_shoot(
 
         if player.fire_timer <= 0.0 {
             // Find nearest enemy
-            if let Some(nearest_enemy) = enemy_query
-                .iter()
-                .min_by_key(|enemy_transform| {
-                    let dist = player_transform.translation.distance(enemy_transform.translation);
-                    (dist * 100.0) as i32
-                })
-            {
+            if let Some(nearest_enemy) = enemy_query.iter().min_by_key(|enemy_transform| {
+                player_transform
+                    .translation
+                    .distance(enemy_transform.translation) as i32
+            }) {
                 let direction = (nearest_enemy.translation - player_transform.translation)
                     .truncate()
                     .normalize();
@@ -44,10 +42,7 @@ pub fn auto_shoot(
     }
 }
 
-pub fn move_bullets(
-    mut bullet_query: Query<(&mut Transform, &Bullet)>,
-    time: Res<Time>,
-) {
+pub fn move_bullets(mut bullet_query: Query<(&mut Transform, &Bullet)>, time: Res<Time>) {
     for (mut transform, bullet) in &mut bullet_query {
         transform.translation += bullet.direction.extend(0.0) * BULLET_SPEED * time.delta_secs();
     }

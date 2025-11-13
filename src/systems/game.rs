@@ -1,6 +1,6 @@
+use crate::components::Enemy;
+use crate::resources::{GAME_AREA, GameState, WAVE_DURATION};
 use bevy::prelude::*;
-use crate::components::{Enemy, Bullet};
-use crate::resources::{GameState, WAVE_DURATION};
 
 pub fn update_wave_timer(
     mut game_state: ResMut<GameState>,
@@ -27,14 +27,16 @@ pub fn update_wave_timer(
         }
     }
 }
-
-pub fn cleanup_offscreen(
-    mut commands: Commands,
-    bullet_query: Query<(Entity, &Transform), With<Bullet>>,
-) {
-    for (entity, transform) in &bullet_query {
-        if transform.translation.x.abs() > 1000.0 || transform.translation.y.abs() > 1000.0 {
-            commands.entity(entity).despawn();
+pub fn out_of_bounds_system(mut commands: Commands, query: Query<(Entity, &Transform)>) -> Result {
+    for (entity, transform) in query.iter() {
+        let entity_pos = transform.translation.xy();
+        if entity_pos.x < GAME_AREA.min.x
+            || entity_pos.x > GAME_AREA.max.x
+            || entity_pos.y < GAME_AREA.min.y
+            || entity_pos.y > GAME_AREA.max.y
+        {
+            commands.entity(entity).despawn()
         }
     }
+    Ok(())
 }

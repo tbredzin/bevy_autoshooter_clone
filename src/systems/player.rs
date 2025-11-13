@@ -1,6 +1,6 @@
-use bevy::prelude::*;
 use crate::components::Player;
-use crate::resources::PLAYER_SPEED;
+use crate::resources::{GAME_AREA, PLAYER_SPEED};
+use bevy::prelude::*;
 
 pub fn player_movement(
     keyboard: Res<ButtonInput<KeyCode>>,
@@ -28,8 +28,14 @@ pub fn player_movement(
             transform.translation += direction.extend(0.0) * PLAYER_SPEED * time.delta_secs();
         }
 
-        // Keep player in bounds
-        transform.translation.x = transform.translation.x.clamp(-400.0, 400.0);
-        transform.translation.y = transform.translation.y.clamp(-300.0, 300.0);
+        // clamp to game area
+        transform.translation.x = transform
+            .translation
+            .x
+            .clamp(GAME_AREA.min.x, GAME_AREA.max.x);
+        transform.translation.y = transform
+            .translation
+            .y
+            .clamp(GAME_AREA.min.y, GAME_AREA.max.y);
     }
 }

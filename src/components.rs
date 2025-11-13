@@ -17,3 +17,6 @@ pub struct Bullet {
 
 #[derive(Component)]
 pub struct UIText;
+
+#[derive(Component)]
+pub struct Background;

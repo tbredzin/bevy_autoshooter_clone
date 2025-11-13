@@ -1,5 +1,6 @@
+use crate::components::{Background, Player, UIText};
+use crate::resources::GAME_AREA;
 use bevy::prelude::*;
-use crate::components::{Player, UIText};
 
 pub fn setup(
     mut commands: Commands,
@@ -7,6 +8,16 @@ pub fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     commands.spawn(Camera2d);
+
+    // Background
+    //TODO: DO BETTER
+
+    // commands.spawn((
+    //     Mesh2d(meshes.add(Rectangle::new(GAME_AREA.width()*2.0, GAME_AREA.height()*2.0))),
+    //     MeshMaterial2d(materials.add(Color::WHITE)),
+    //     Transform::from_xyz(GAME_AREA.min.x, GAME_AREA.max.y, 0.0),
+    //     Background,
+    // ));
 
     // Player
     commands.spawn((
@@ -31,4 +42,6 @@ pub fn setup(
         },
         UIText,
     ));
+
+    println!("GAME_AREA: {GAME_AREA:?}");
 }
