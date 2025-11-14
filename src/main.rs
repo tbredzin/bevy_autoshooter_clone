@@ -29,7 +29,7 @@ fn main() {
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
         .init_resource::<GameState>()
-        .add_systems(Startup, setup::setup)
+        .add_systems(Startup, (setup::setup, setup::setup_background).chain())
         .add_systems(
             Update,
             (

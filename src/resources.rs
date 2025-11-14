@@ -9,10 +9,10 @@ pub const SPAWN_RATE: f32 = 0.5;
 
 pub const GAME_AREA: Rect = Rect {
     min: Vec2 {
-        x: -600.0,
+        x: -640.0,
         y: -300.0,
     },
-    max: Vec2 { x: 600.0, y: 300.0 },
+    max: Vec2 { x: 640.0, y: 300.0 },
 };
 
 #[derive(Resource)]
@@ -40,4 +40,10 @@ impl Default for GameState {
             max_health: 100.0,
         }
     }
+}
+
+#[derive(Resource)]
+pub struct TilesTextureAtlas {
+    pub texture: Handle<Image>,
+    pub layout: Handle<TextureAtlasLayout>,
 }

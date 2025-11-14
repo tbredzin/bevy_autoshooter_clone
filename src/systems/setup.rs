@@ -1,23 +1,16 @@
-use crate::components::{Background, Player, UIText};
-use crate::resources::GAME_AREA;
+use crate::components::{Player, UIText};
+use crate::resources::TilesTextureAtlas;
 use bevy::prelude::*;
+use rand::Rng;
 
 pub fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    commands.spawn(Camera2d);
-
-    // Background
-    //TODO: DO BETTER
-
-    // commands.spawn((
-    //     Mesh2d(meshes.add(Rectangle::new(GAME_AREA.width()*2.0, GAME_AREA.height()*2.0))),
-    //     MeshMaterial2d(materials.add(Color::WHITE)),
-    //     Transform::from_xyz(GAME_AREA.min.x, GAME_AREA.max.y, 0.0),
-    //     Background,
-    // ));
+    commands.spawn((Camera2d, Msaa::Sample4));
 
     // Player
     commands.spawn((
@@ -43,5 +36,45 @@ pub fn setup(
         UIText,
     ));
 
-    println!("GAME_AREA: {GAME_AREA:?}");
+    let texture = asset_server.load("spritesheet/spritesheet_tiles.png");
+    let layout = TextureAtlasLayout::from_grid(
+        UVec2::splat(64),       // tile size (width, height)
+        27,                     // columns
+        20,                     // rows
+        Some(UVec2::splat(10)), // no padding
+        None,                   // no offset
+    );
+
+    let layout_handle = texture_atlas_layouts.add(layout);
+
+    commands.insert_resource(TilesTextureAtlas {
+        texture,
+        layout: layout_handle,
+    });
+}
+pub fn setup_background(mut commands: Commands, atlas: Res<TilesTextureAtlas>) {
+    let tile_size = 64.0;
+    let tiles_x = 20; // TODO: count number of tiles based on GAME_AREA
+    let tiles_y = 15;
+
+    let mut rng = rand::rng();
+    for x in 0..tiles_x {
+        for y in 0..tiles_y {
+            let pos_x = (x as f32 - tiles_x as f32 / 2.0) * tile_size;
+            let pos_y = (y as f32 - tiles_y as f32 / 2.0) * tile_size;
+            // Use different tile indices for variety
+            let tile_index = rng.random_range(0..4);
+
+            commands.spawn((
+                Sprite::from_atlas_image(
+                    atlas.texture.clone(),
+                    TextureAtlas {
+                        layout: atlas.layout.clone(),
+                        index: tile_index,
+                    },
+                ),
+                Transform::from_xyz(pos_x, pos_y, -10.0),
+            ));
+        }
+    }
 }
