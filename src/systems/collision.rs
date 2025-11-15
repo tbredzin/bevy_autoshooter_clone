@@ -1,5 +1,5 @@
 use crate::components::{Bullet, Enemy, Player};
-use crate::resources::GameState;
+use crate::resources::{GameState, WaveState};
 use bevy::prelude::*;
 
 pub fn check_bullet_enemy_collision(
@@ -7,7 +7,10 @@ pub fn check_bullet_enemy_collision(
     bullet_query: Query<(Entity, &Transform), With<Bullet>>,
     mut enemy_query: Query<(Entity, &Transform, &mut Enemy)>,
     mut game_state: ResMut<GameState>,
-) {
+) -> Result {
+    if game_state.wave_state == WaveState::Ended {
+        return Ok(());
+    }
     for (bullet_entity, bullet_transform) in &bullet_query {
         for (enemy_entity, enemy_transform, mut enemy) in &mut enemy_query {
             let distance = bullet_transform
@@ -30,6 +33,7 @@ pub fn check_bullet_enemy_collision(
             }
         }
     }
+    Ok(())
 }
 
 pub fn check_player_enemy_collision(
@@ -37,16 +41,19 @@ pub fn check_player_enemy_collision(
     player_query: Query<&Transform, With<Player>>,
     mut game_state: ResMut<GameState>,
     time: Res<Time>,
-) {
-    if let Ok(player_transform) = player_query.single() {
-        for enemy_transform in &enemy_query {
-            let distance = player_transform
-                .translation
-                .distance(enemy_transform.translation);
-            if distance < 35.0 {
-                game_state.health -= 10.0 * time.delta_secs();
-                game_state.health = game_state.health.max(0.0);
-            }
+) -> Result {
+    if game_state.wave_state == WaveState::Ended {
+        return Ok(());
+    }
+    let player_transform = player_query.single()?;
+    for enemy_transform in &enemy_query {
+        let distance = player_transform
+            .translation
+            .distance(enemy_transform.translation);
+        if distance < 35.0 {
+            game_state.health -= 10.0 * time.delta_secs();
+            game_state.health = game_state.health.max(0.0);
         }
     }
+    Ok(())
 }

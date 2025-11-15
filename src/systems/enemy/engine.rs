@@ -1,17 +1,18 @@
-use crate::components::{Enemy, Player, PreSpawn};
-use crate::resources::{ENEMY_SPEED, GAME_AREA, GameState, SPAWN_RATE, ENEMY_SPAWN_TIME_IN_S, tiles_to_pixels};
+use crate::components::{Enemy, Player, Spawning};
+use crate::resources::{
+    ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA, GameState, SPAWN_RATE, WaveState,
+    tiles_to_pixels,
+};
 use bevy::prelude::*;
 use rand::Rng;
 
-pub fn enemy_prespawn(
+pub fn update_spawning(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut game_state: ResMut<GameState>,
-    time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
+    time: Res<Time>,
 ) -> Result {
-    if !game_state.in_wave {
+    if game_state.wave_state == WaveState::Ended {
         return Ok(());
     }
 
@@ -33,12 +34,9 @@ pub fn enemy_prespawn(
 
         // Spawn warning indicator
         commands.spawn((
-            Mesh2d(meshes.add(Circle::new(30.0))),
-            MeshMaterial2d(materials.add(Color::srgba(1.0, 0.0, 0.0, 0.3))),
             Transform::from_translation(spawn_pos),
-            PreSpawn {
+            Spawning {
                 timer: ENEMY_SPAWN_TIME_IN_S,
-                spawn_position: spawn_pos,
             },
         ));
 
@@ -47,33 +45,24 @@ pub fn enemy_prespawn(
     Ok(())
 }
 
-pub fn enemy_spawn(
+pub fn update_spawned(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut warning_query: Query<(Entity, &mut PreSpawn, &mut Transform)>,
+    mut pre_spawn: Query<(Entity, &mut Spawning)>,
     time: Res<Time>,
 ) {
-    for (entity, mut warning, mut transform) in &mut warning_query {
-        warning.timer -= time.delta_secs();
-
-        // Pulsing effect
-        let scale = 1.0 + (warning.timer * 5.0).sin() * 0.2;
-        transform.scale = Vec3::splat(scale);
-
+    for (entity, mut pre_spawn) in &mut pre_spawn {
+        pre_spawn.timer -= time.delta_secs();
         // When timer expires, spawn the actual enemy
-        if warning.timer <= 0.0 {
-            commands.entity(entity).remove::<PreSpawn>();
-            commands.entity(entity).insert((
-                Enemy { health: 5.0 },
-                Mesh2d(meshes.add(Circle::new(15.0))),
-                MeshMaterial2d(materials.add(Color::srgb(1.0, 0.3, 0.3))),
-            ));
+        if pre_spawn.timer <= 0.0 {
+            commands.entity(entity).remove::<Spawning>();
+            commands.entity(entity).insert((Enemy {
+                health: ENEMY_HEALTH,
+            },));
         }
     }
 }
 
-pub fn move_enemies(
+pub fn update_move(
     mut enemy_query: Query<&mut Transform, With<Enemy>>,
     player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
     time: Res<Time>,

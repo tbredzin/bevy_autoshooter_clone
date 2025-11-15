@@ -47,19 +47,27 @@ fn main() {
         })
         .init_resource::<GameState>()
         .add_systems(Startup, (setup::setup, setup::setup_background).chain())
+        // logic
         .add_systems(
             Update,
             (
                 player::player_movement,
+                game::update_game_state,
+                game::out_of_bounds_system,
+                enemy::engine::update_spawning,
+                enemy::engine::update_spawned,
+                enemy::engine::update_move,
                 combat::auto_shoot,
-                enemy::enemy_prespawn,
-                enemy::enemy_spawn,
                 combat::move_bullets,
-                enemy::move_enemies,
                 collision::check_bullet_enemy_collision,
                 collision::check_player_enemy_collision,
-                game::update_wave_timer,
-                game::out_of_bounds_system,
+            ),
+        )
+        //Rendering
+        .add_systems(
+            PostUpdate,
+            (
+                enemy::renderer::render_spawning,
                 ui::update_ui,
                 camera::camera_follow_player,
             ),

@@ -14,10 +14,11 @@ pub const fn tiles_to_pixels(tiles: f32) -> f32 {
 // Game constants (in pixels for physics/collision)
 pub const PLAYER_SPEED: f32 = 200.0;
 pub const ENEMY_SPEED: f32 = 80.0;
+pub const ENEMY_HEALTH: f32 = 4.0;
 pub const BULLET_SPEED: f32 = 500.0;
 pub const FIRE_RATE: f32 = 0.5;
-pub const WAVE_DURATION: f32 = 20.0;
-pub const SPAWN_RATE: f32 = 0.5;
+pub const WAVE_DURATION: f32 = 5.0;
+pub const SPAWN_RATE: f32 = 0.05;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
 
 // Game area calculated from tile dimensions (exact whole tiles)
@@ -31,6 +32,11 @@ pub const GAME_AREA: Rect = Rect {
         y: (TILES_Y as f32 * TILE_SIZE) / 2.0, // 480.0
     },
 };
+#[derive(Debug, PartialEq, Eq)]
+pub enum WaveState {
+    Running,
+    Ended,
+}
 
 #[derive(Resource)]
 pub struct GameState {
@@ -39,7 +45,7 @@ pub struct GameState {
     pub level: u32,
     pub wave_timer: f32,
     pub enemy_spawn_timer: f32,
-    pub in_wave: bool,
+    pub wave_state: WaveState,
     pub health: f32,
     pub max_health: f32,
 }
@@ -52,7 +58,7 @@ impl Default for GameState {
             level: 1,
             wave_timer: WAVE_DURATION,
             enemy_spawn_timer: 0.0,
-            in_wave: true,
+            wave_state: WaveState::Running,
             health: 100.0,
             max_health: 100.0,
         }

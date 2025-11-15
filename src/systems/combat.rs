@@ -1,5 +1,5 @@
 use crate::components::{Bullet, Enemy, Player};
-use crate::resources::{BULLET_SPEED, FIRE_RATE, GameState};
+use crate::resources::{BULLET_SPEED, FIRE_RATE, GameState, WaveState};
 use bevy::prelude::*;
 
 pub fn auto_shoot(
@@ -11,7 +11,7 @@ pub fn auto_shoot(
     time: Res<Time>,
     game_state: Res<GameState>,
 ) {
-    if !game_state.in_wave {
+    if game_state.wave_state == WaveState::Ended {
         return;
     }
 
