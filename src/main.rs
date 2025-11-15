@@ -52,7 +52,8 @@ fn main() {
             (
                 player::player_movement,
                 combat::auto_shoot,
-                enemy::spawn_enemies,
+                enemy::enemy_prespawn,
+                enemy::enemy_spawn,
                 combat::move_bullets,
                 enemy::move_enemies,
                 collision::check_bullet_enemy_collision,

@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 
 pub const TILE_SIZE: f32 = 64.0; // pixels per tile
-pub const TILES_X: u32 = 40; // horizontal tiles
-pub const TILES_Y: u32 = 30; // vertical tiles
+pub const TILES_X: u32 = 40;
+pub const TILES_Y: u32 = 30;
 
-// Window/viewport size
 pub const WINDOW_WIDTH: f32 = 1280.0;
 pub const WINDOW_HEIGHT: f32 = 960.0;
 
@@ -14,11 +13,12 @@ pub const fn tiles_to_pixels(tiles: f32) -> f32 {
 
 // Game constants (in pixels for physics/collision)
 pub const PLAYER_SPEED: f32 = 200.0;
-pub const ENEMY_SPEED: f32 = 100.0;
+pub const ENEMY_SPEED: f32 = 80.0;
 pub const BULLET_SPEED: f32 = 500.0;
 pub const FIRE_RATE: f32 = 0.5;
 pub const WAVE_DURATION: f32 = 20.0;
 pub const SPAWN_RATE: f32 = 0.5;
+pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
 
 // Game area calculated from tile dimensions (exact whole tiles)
 pub const GAME_AREA: Rect = Rect {
