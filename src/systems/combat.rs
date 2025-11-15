@@ -1,46 +1,56 @@
-use crate::components::{Bullet, Enemy, Player};
-use crate::resources::{GameState, WaveState, BULLET_SPEED};
+use crate::components::{Bullet, Enemy, Player, Weapon};
+use crate::resources::{BULLET_SPEED, WaveManager, WaveState};
 use bevy::prelude::*;
 
 pub fn auto_shoot(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut player_query: Query<(&GlobalTransform, &mut Player)>,
+    player_query: Query<(&GlobalTransform, &Children), With<Player>>,
+    mut weapons_query: Query<&mut Weapon>,
     enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
-    game_state: Res<GameState>,
+    wave_manager: Res<WaveManager>,
 ) {
-    if game_state.wave_state == WaveState::Ended {
+    if wave_manager.wave_state == WaveState::Ended {
         return;
     }
 
-    let Ok((player_transform, mut player)) = player_query.single_mut() else {
+    let Ok((player_transform, children)) = player_query.single() else {
         return;
     };
+    for child in children.iter() {
+        let Ok(player_weapon) = &mut weapons_query.get_mut(child) else {
+            continue;
+        };
 
-    player.fire_timer.tick(time.delta());
+        player_weapon.fire_rate.tick(time.delta());
 
-    if player.fire_timer.is_finished() {
-        // Find nearest enemy
-        let player_pos = player_transform.translation();
+        if player_weapon.fire_rate.is_finished() {
+            // Find nearest enemy
+            let player_pos = player_transform.translation();
 
-        if let Some(nearest_enemy) = enemy_query
-            .iter()
-            .min_by_key(|enemy_transform| player_pos.distance(enemy_transform.translation()) as i32)
-        {
-            let direction = (nearest_enemy.translation() - player_pos)
-                .truncate()
-                .normalize();
+            if let Some(nearest_enemy) = enemy_query.iter().min_by_key(|enemy_transform| {
+                player_pos.distance(enemy_transform.translation()) as i32
+            }) {
+                if player_pos.distance(nearest_enemy.translation()) > player_weapon.range {
+                    continue; // No enemy at range for this weapon
+                }
 
-            commands.spawn((
-                Mesh2d(meshes.add(Circle::new(5.0))),
-                MeshMaterial2d(materials.add(Color::srgb(1.0, 1.0, 0.2))),
-                Transform::from_translation(player_pos),
-                Bullet { direction },
-            ));
+                let direction = (nearest_enemy.translation() - player_pos)
+                    .truncate()
+                    .normalize();
+                let damage = player_weapon.damage;
 
-            player.fire_timer.reset();
+                commands.spawn((
+                    Mesh2d(meshes.add(Circle::new(player_weapon.bullet_size))),
+                    MeshMaterial2d(materials.add(player_weapon.bullet_color)),
+                    Transform::from_translation(player_pos),
+                    Bullet { direction, damage },
+                ));
+
+                player_weapon.fire_rate.reset();
+            }
         }
     }
 }

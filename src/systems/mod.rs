@@ -6,3 +6,4 @@ pub mod game;
 pub mod player;
 pub mod setup;
 pub mod ui;
+pub mod wave;

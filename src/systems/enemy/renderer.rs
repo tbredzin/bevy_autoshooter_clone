@@ -1,5 +1,5 @@
 use crate::components::Spawning;
-use crate::resources::{GameState, WaveState};
+use crate::resources::{WaveManager, WaveState};
 use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::ecs::lifecycle::HookContext;
@@ -10,17 +10,18 @@ use bevy::prelude::*;
 
 pub fn render_spawning(
     mut warning_query: Query<(&mut Spawning, &mut Transform)>,
-    game_state: ResMut<GameState>,
+    wave_manager: Res<WaveManager>,
     time: Res<Time>,
 ) {
-    if game_state.wave_state == WaveState::Ended {
-        return ;
+    if wave_manager.wave_state == WaveState::Ended {
+        return;
     }
-    for (mut pre_spawn, mut transform) in &mut warning_query {
-        pre_spawn.timer.tick(time.delta());
+
+    for (mut spawning, mut transform) in &mut warning_query {
+        spawning.timer.tick(time.delta());
 
         // Pulsing effect
-        let scale = 1.0 + (pre_spawn.timer.elapsed().as_secs_f32() * 5.0).sin() * 0.2;
+        let scale = 1.0 + (spawning.timer.elapsed_secs() * 5.0).sin() * 0.2;
         transform.scale = Vec3::splat(scale);
     }
 }

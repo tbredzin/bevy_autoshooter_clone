@@ -1,13 +1,13 @@
 mod components;
+mod messages;
 mod resources;
 mod systems;
 
-use crate::resources::{WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::resources::{WINDOW_HEIGHT, WINDOW_WIDTH, WaveManager};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
-use resources::GameState;
 use std::time::Duration;
 use systems::*;
 
@@ -45,25 +45,28 @@ fn main() {
             focused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
-        .init_resource::<GameState>()
+        .init_resource::<WaveManager>()
         .add_systems(Startup, (setup::setup, setup::setup_background).chain())
-        // logic
+        // Logic
         .add_systems(
             Update,
             (
                 player::player_movement,
-                game::update_game_state,
+                player::handle_enemy_death,
+                wave::update_wave_timer,
+                wave::handle_wave_input,
                 game::out_of_bounds_system,
                 enemy::engine::update_spawning,
                 enemy::engine::update_spawned,
                 enemy::engine::update_move,
+                enemy::engine::check_if_dead,
                 combat::auto_shoot,
                 combat::move_bullets,
                 collision::check_bullet_enemy_collision,
                 collision::check_player_enemy_collision,
             ),
         )
-        //Rendering
+        // Rendering
         .add_systems(
             PostUpdate,
             (
@@ -72,5 +75,6 @@ fn main() {
                 camera::camera_follow_player,
             ),
         )
+        .add_message::<messages::EnemyDeathMessage>()
         .run();
 }

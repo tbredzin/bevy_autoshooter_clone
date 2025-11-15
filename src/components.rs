@@ -2,13 +2,41 @@ use crate::systems::enemy::renderer::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Player {
-    pub fire_timer: Timer,
+pub struct Player {}
+
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    pub mesh: Mesh2d,
+    pub mesh_material2d: MeshMaterial2d<ColorMaterial>,
+    pub transform: Transform,
+    pub player: Player,
+    pub health: Health,
+    pub xp: PlayerExperience,
+}
+
+#[derive(Component)]
+pub struct Health {
+    pub value: f32,
+    pub max: f32,
+}
+#[derive(Component)]
+pub struct PlayerExperience {
+    pub value: u32,
+    pub level: u32,
+}
+#[derive(Component)]
+pub struct Weapon {
+    pub fire_rate: Timer,
+    pub damage: f32,
+    pub range: f32,
+    pub bullet_color: Color,
+    pub bullet_size: f32,
 }
 
 #[derive(Component)]
 pub struct Bullet {
     pub direction: Vec2,
+    pub damage: f32,
 }
 
 #[derive(Component)]
@@ -54,13 +82,5 @@ pub struct Spawning {
 #[derive(Component)]
 #[component(on_add = on_enemy_spawned)]
 pub struct Enemy {
-    pub health: f32,
-}
-
-#[derive(Bundle)]
-pub struct PlayerBundle {
-    pub mesh: Mesh2d,
-    pub mesh_material2d: MeshMaterial2d<ColorMaterial>,
-    pub transform: Transform,
-    pub player: Player,
+    pub(crate) damage: f32,
 }

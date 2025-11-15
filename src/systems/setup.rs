@@ -1,7 +1,7 @@
-use crate::components::{HUDBundle, Player, PlayerBundle};
-use crate::resources::{
-    tiles_to_pixels, TilesTextureAtlas, FIRE_RATE, TILES_X, TILES_Y, TILE_SIZE,
-};
+use crate::components::{HUDBundle, Health, Player, PlayerBundle, PlayerExperience, Weapon};
+use crate::resources::{TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels};
+use bevy::color::palettes::basic::BLUE;
+use bevy::color::palettes::css::YELLOW;
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -29,14 +29,34 @@ pub fn setup(
     commands.spawn((Camera2d, Msaa::Sample4));
 
     // Player
-    commands.spawn(PlayerBundle {
-        mesh: Mesh2d(meshes.add(Circle::new(20.0))),
-        mesh_material2d: MeshMaterial2d(materials.add(Color::srgb(0.2, 0.6, 1.0))),
-        transform: Transform::from_xyz(0.0, 0.0, 0.0),
-        player: Player {
-            fire_timer: Timer::from_seconds(FIRE_RATE, TimerMode::Repeating),
-        },
-    });
+    commands
+        .spawn(PlayerBundle {
+            mesh: Mesh2d(meshes.add(Circle::new(20.0))),
+            mesh_material2d: MeshMaterial2d(materials.add(Color::srgb(0.2, 0.6, 1.0))),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            player: Player {},
+            health: Health {
+                value: 100.0,
+                max: 100.0,
+            },
+            xp: PlayerExperience { value: 0, level: 1 },
+        })
+        .with_child(Weapon {
+            //Machine gun
+            fire_rate: Timer::from_seconds(0.1, TimerMode::Repeating),
+            damage: 1.0,
+            range: tiles_to_pixels(10.0),
+            bullet_color: YELLOW.into(),
+            bullet_size: 3.0,
+        })
+        .with_child(Weapon {
+            // Pistol
+            fire_rate: Timer::from_seconds(1.0, TimerMode::Repeating),
+            damage: 10.0,
+            range: tiles_to_pixels(10.0),
+            bullet_color: BLUE.into(),
+            bullet_size: 10.0,
+        });
 
     // HUD
     commands.spawn(HUDBundle::new(
@@ -54,7 +74,7 @@ pub fn setup_background(mut commands: Commands, atlas: Res<TilesTextureAtlas>) {
             let pos_y = tiles_to_pixels(y as f32 - TILES_Y as f32 / 2.0);
 
             // Use different tile indices for variety
-            let tile_index = rng.random_range(0..4);
+            let tile_index = rng.random_range(12..16);
 
             commands.spawn((
                 Sprite::from_atlas_image(
