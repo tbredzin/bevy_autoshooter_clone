@@ -17,8 +17,8 @@ pub const ENEMY_SPEED: f32 = 80.0;
 pub const ENEMY_HEALTH: f32 = 4.0;
 pub const BULLET_SPEED: f32 = 500.0;
 pub const FIRE_RATE: f32 = 0.5;
-pub const WAVE_DURATION: f32 = 5.0;
-pub const SPAWN_RATE: f32 = 0.05;
+pub const WAVE_DURATION: f32 = 30.0;
+pub const SPAWN_RATE: f32 = 0.0050;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
 
 // Game area calculated from tile dimensions (exact whole tiles)
@@ -43,8 +43,8 @@ pub struct GameState {
     pub wave: u32,
     pub xp: u32,
     pub level: u32,
-    pub wave_timer: f32,
-    pub enemy_spawn_timer: f32,
+    pub wave_timer: Timer,
+    pub enemy_spawn_timer: Timer,
     pub wave_state: WaveState,
     pub health: f32,
     pub max_health: f32,
@@ -56,8 +56,8 @@ impl Default for GameState {
             wave: 1,
             xp: 0,
             level: 1,
-            wave_timer: WAVE_DURATION,
-            enemy_spawn_timer: 0.0,
+            wave_timer: Timer::from_seconds(WAVE_DURATION, TimerMode::Once),
+            enemy_spawn_timer: Timer::from_seconds(SPAWN_RATE, TimerMode::Repeating),
             wave_state: WaveState::Running,
             health: 100.0,
             max_health: 100.0,

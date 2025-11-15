@@ -1,11 +1,11 @@
-use crate::components::{Enemy, WaveEndedText};
+use crate::components::{Enemy, Spawning, WaveEndedText};
 use crate::resources::{GAME_AREA, GameState, WaveState};
 use bevy::color::palettes::css::YELLOW;
 use bevy::prelude::*;
 
 pub fn update_game_state(
     mut game_state: ResMut<GameState>,
-    mut enemy_query: Query<Entity, With<Enemy>>,
+    mut enemy_query: Query<Entity, Or<(With<Enemy>, With<Spawning>)>>,
     pause_text: Query<Entity, With<WaveEndedText>>,
     mut commands: Commands,
     time: Res<Time>,
@@ -16,8 +16,8 @@ pub fn update_game_state(
                 commands.entity(entity).despawn();
             }
 
-            game_state.wave_timer -= time.delta_secs();
-            if game_state.wave_timer <= 0.0 {
+            game_state.wave_timer.tick(time.delta());
+            if game_state.wave_timer.is_finished() {
                 game_state.wave_state = WaveState::Ended;
             }
         }
@@ -51,9 +51,10 @@ pub fn update_game_state(
     }
 }
 
-pub fn out_of_bounds_system(mut commands: Commands, query: Query<(Entity, &Transform)>) -> Result {
+pub fn out_of_bounds_system(mut commands: Commands,
+                            query: Query<(Entity, &GlobalTransform)>) {
     for (entity, transform) in query.iter() {
-        let entity_pos = transform.translation.xy();
+        let entity_pos = transform.translation().truncate();
         if entity_pos.x < GAME_AREA.min.x
             || entity_pos.x > GAME_AREA.max.x
             || entity_pos.y < GAME_AREA.min.y
@@ -62,5 +63,4 @@ pub fn out_of_bounds_system(mut commands: Commands, query: Query<(Entity, &Trans
             commands.entity(entity).despawn()
         }
     }
-    Ok(())
 }

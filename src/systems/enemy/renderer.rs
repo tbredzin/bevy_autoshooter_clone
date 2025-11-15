@@ -12,18 +12,17 @@ pub fn render_spawning(
     mut warning_query: Query<(&mut Spawning, &mut Transform)>,
     game_state: ResMut<GameState>,
     time: Res<Time>,
-) -> Result {
+) {
     if game_state.wave_state == WaveState::Ended {
-        return Ok(());
+        return ;
     }
     for (mut pre_spawn, mut transform) in &mut warning_query {
-        pre_spawn.timer -= time.delta_secs();
+        pre_spawn.timer.tick(time.delta());
 
         // Pulsing effect
-        let scale = 1.0 + (pre_spawn.timer * 5.0).sin() * 0.2;
+        let scale = 1.0 + (pre_spawn.timer.elapsed().as_secs_f32() * 5.0).sin() * 0.2;
         transform.scale = Vec3::splat(scale);
     }
-    Ok(())
 }
 
 pub fn on_enemy_spawning(mut world: DeferredWorld, context: HookContext) {

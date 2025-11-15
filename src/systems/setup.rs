@@ -1,5 +1,7 @@
 use crate::components::{HUDBundle, Player, PlayerBundle};
-use crate::resources::{TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels};
+use crate::resources::{
+    tiles_to_pixels, TilesTextureAtlas, FIRE_RATE, TILES_X, TILES_Y, TILE_SIZE,
+};
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -31,7 +33,9 @@ pub fn setup(
         mesh: Mesh2d(meshes.add(Circle::new(20.0))),
         mesh_material2d: MeshMaterial2d(materials.add(Color::srgb(0.2, 0.6, 1.0))),
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
-        player: Player { fire_timer: 0.0 },
+        player: Player {
+            fire_timer: Timer::from_seconds(FIRE_RATE, TimerMode::Repeating),
+        },
     });
 
     // HUD

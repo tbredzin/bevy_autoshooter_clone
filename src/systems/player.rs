@@ -7,14 +7,13 @@ pub fn player_movement(
     mut game_state: ResMut<GameState>,
     mut player_query: Query<&mut Transform, With<Player>>,
     time: Res<Time>,
-) -> Result {
+) {
     if game_state.wave_state == WaveState::Ended {
         if keyboard.pressed(KeyCode::Space) || keyboard.pressed(KeyCode::Enter) {
             game_state.wave += 1;
             game_state.wave_state = WaveState::Running;
-            game_state.wave_timer = WAVE_DURATION;
+            game_state.wave_timer = Timer::from_seconds(WAVE_DURATION, TimerMode::Once);
         }
-        return Ok(());
     }
     if let Ok(mut transform) = player_query.single_mut() {
         let mut direction = Vec2::ZERO;
@@ -47,5 +46,4 @@ pub fn player_movement(
             .y
             .clamp(GAME_AREA.min.y, GAME_AREA.max.y);
     }
-    Ok(())
 }

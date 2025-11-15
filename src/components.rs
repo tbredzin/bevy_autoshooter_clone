@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Player {
-    pub fire_timer: f32,
+    pub fire_timer: Timer,
 }
 
 #[derive(Component)]
@@ -48,7 +48,7 @@ impl HUDBundle {
 #[derive(Component)]
 #[component(on_add = on_enemy_spawning)]
 pub struct Spawning {
-    pub timer: f32,
+    pub timer: Timer,
 }
 
 #[derive(Component)]

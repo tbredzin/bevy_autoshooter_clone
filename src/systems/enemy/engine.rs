@@ -1,32 +1,37 @@
 use crate::components::{Enemy, Player, Spawning};
 use crate::resources::{
-    ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA, GameState, SPAWN_RATE, WaveState,
-    tiles_to_pixels,
+    tiles_to_pixels, GameState, WaveState, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA,
+    SPAWN_RATE,
 };
 use bevy::prelude::*;
 use rand::Rng;
+use std::time::Duration;
 
 pub fn update_spawning(
     mut commands: Commands,
     mut game_state: ResMut<GameState>,
     player_query: Query<&Transform, With<Player>>,
     time: Res<Time>,
-) -> Result {
+) {
     if game_state.wave_state == WaveState::Ended {
-        return Ok(());
+        return;
     }
 
-    game_state.enemy_spawn_timer -= time.delta_secs();
+    game_state.enemy_spawn_timer.tick(time.delta());
 
-    if game_state.enemy_spawn_timer <= 0.0 {
+    if game_state.enemy_spawn_timer.is_finished() {
         let mut rng = rand::rng();
 
-        let player_pos = player_query.single()?.translation.xy();
+        let Ok(player_transform) = player_query.single() else {
+            return;
+        };
+
+        let player_pos = player_transform.translation.truncate();
         let min_distance = tiles_to_pixels(2.0);
         let max_distance = tiles_to_pixels(50.0);
 
         // Generate a random spawn position
-        let angle = rng.random_range(0.0..std::f32::consts::PI * 2.0);
+        let angle = rng.random_range(0.0..std::f32::consts::TAU);
         let distance = rng.random_range(min_distance..max_distance);
         let x = (player_pos.x + angle.cos() * distance).clamp(GAME_AREA.min.x, GAME_AREA.max.x);
         let y = (player_pos.y + angle.sin() * distance).clamp(GAME_AREA.min.y, GAME_AREA.max.y);
@@ -36,24 +41,26 @@ pub fn update_spawning(
         commands.spawn((
             Transform::from_translation(spawn_pos),
             Spawning {
-                timer: ENEMY_SPAWN_TIME_IN_S,
+                timer: Timer::from_seconds(ENEMY_SPAWN_TIME_IN_S, TimerMode::Once),
             },
         ));
 
-        game_state.enemy_spawn_timer = SPAWN_RATE / game_state.wave as f32;
+        // Adjust spawn rate based on wave
+        let new_duration = (SPAWN_RATE / game_state.wave as f32).max(0.01);
+        game_state
+            .enemy_spawn_timer
+            .set_duration(Duration::from_secs_f32(new_duration));
     }
-    Ok(())
 }
 
 pub fn update_spawned(
     mut commands: Commands,
-    mut pre_spawn: Query<(Entity, &mut Spawning)>,
+    mut spawning_query: Query<(Entity, &mut Spawning)>,
     time: Res<Time>,
 ) {
-    for (entity, mut pre_spawn) in &mut pre_spawn {
-        pre_spawn.timer -= time.delta_secs();
-        // When timer expires, spawn the actual enemy
-        if pre_spawn.timer <= 0.0 {
+    for (entity, mut spawning) in &mut spawning_query {
+        spawning.timer.tick(time.delta());
+        if spawning.timer.is_finished() {
             commands.entity(entity).remove::<Spawning>();
             commands.entity(entity).insert((Enemy {
                 health: ENEMY_HEALTH,

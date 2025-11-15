@@ -4,19 +4,25 @@ use bevy::prelude::*;
 
 pub fn check_bullet_enemy_collision(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &Transform), With<Bullet>>,
-    mut enemy_query: Query<(Entity, &Transform, &mut Enemy)>,
+    bullet_query: Query<(Entity, &GlobalTransform), With<Bullet>>,
+    mut enemy_query: Query<(Entity, &GlobalTransform, &mut Enemy)>,
     mut game_state: ResMut<GameState>,
-) -> Result {
+) {
     if game_state.wave_state == WaveState::Ended {
-        return Ok(());
+        return;
     }
+
+    // Collision radius squared (avoid sqrt in distance check)
+    const COLLISION_RADIUS_SQ: f32 = 20.0 * 20.0;
+
     for (bullet_entity, bullet_transform) in &bullet_query {
+        let bullet_pos = bullet_transform.translation();
+
         for (enemy_entity, enemy_transform, mut enemy) in &mut enemy_query {
-            let distance = bullet_transform
-                .translation
-                .distance(enemy_transform.translation);
-            if distance < 20.0 {
+            let delta = bullet_pos - enemy_transform.translation();
+            let distance_sq = delta.length_squared();
+
+            if distance_sq < COLLISION_RADIUS_SQ {
                 commands.entity(bullet_entity).despawn();
                 enemy.health -= 1.0;
 
@@ -33,7 +39,6 @@ pub fn check_bullet_enemy_collision(
             }
         }
     }
-    Ok(())
 }
 
 pub fn check_player_enemy_collision(
