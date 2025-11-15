@@ -2,8 +2,10 @@ mod components;
 mod resources;
 mod systems;
 
+use crate::resources::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
+use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
 use resources::GameState;
 use std::time::Duration;
@@ -11,7 +13,15 @@ use systems::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Bevy Auto Shooter".to_string(),
+                resolution: WindowResolution::new(WINDOW_WIDTH as u32, WINDOW_HEIGHT as u32),
+                resizable: false,
+                ..default()
+            }),
+            ..default()
+        }))
         .add_plugins(FpsOverlayPlugin {
             config: FpsOverlayConfig {
                 text_config: TextFont {
@@ -43,6 +53,7 @@ fn main() {
                 game::update_wave_timer,
                 game::out_of_bounds_system,
                 ui::update_ui,
+                camera::camera_follow_player,
             ),
         )
         .run();
