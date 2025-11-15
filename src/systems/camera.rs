@@ -23,9 +23,16 @@ pub fn camera_follow_player(
             GAME_AREA.max.y - tiles_to_pixels(1.0),
         );
 
-        camera_transform.translation = camera_transform.translation.lerp(
-            Vec3::new(target_x, target_y, camera_transform.translation.z),
-            time.delta_secs(),
-        );
+        let smoothing = 2.0; // Higher = snappier, lower = smoother
+        let target_pos = Vec3::new(target_x, target_y, camera_transform.translation.z);
+
+        let new_pos = camera_transform
+            .translation
+            .lerp(target_pos, time.delta_secs() * smoothing);
+
+        // Round to nearest pixel to be pixel perfect
+        camera_transform.translation.x = new_pos.x.round();
+        camera_transform.translation.y = new_pos.y.round();
+        camera_transform.translation.z = new_pos.z;
     }
 }
