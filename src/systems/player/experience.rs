@@ -16,6 +16,7 @@ pub fn handle_enemy_death(
         // Level up check
         if experience.value >= experience.level * 10 {
             experience.level += 1;
+            experience.levels_gained_this_wave += 1;
             health.max += 10.0;
         }
     }

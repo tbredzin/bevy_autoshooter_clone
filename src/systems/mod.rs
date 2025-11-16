@@ -5,6 +5,7 @@ pub mod enemy;
 pub mod game;
 pub mod hud;
 pub mod player;
+pub mod player_upgrades;
 pub mod setup;
 pub mod wave;
 pub mod weapons;

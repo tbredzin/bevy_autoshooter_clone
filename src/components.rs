@@ -21,10 +21,30 @@ pub struct Health {
     pub max: f32,
 }
 
+impl Default for Health {
+    fn default() -> Self {
+        Self {
+            value: 100.0,
+            max: 100.0,
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct PlayerExperience {
     pub value: u32,
     pub level: u32,
+    pub levels_gained_this_wave: u32,
+}
+
+impl Default for PlayerExperience {
+    fn default() -> Self {
+        Self {
+            value: 0,
+            level: 1,
+            levels_gained_this_wave: 0,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]

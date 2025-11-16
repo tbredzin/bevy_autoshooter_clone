@@ -115,11 +115,8 @@ pub fn spawn_entities(
         mesh_material2d: MeshMaterial2d(materials.add(Color::srgb(0.2, 0.6, 1.0))),
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
         player: Player {},
-        health: Health {
-            value: 100.0,
-            max: 100.0,
-        },
-        xp: PlayerExperience { value: 0, level: 1 },
+        health: Health::default(),
+        xp: PlayerExperience::default(),
     });
 
     // Give all weapons available to player

@@ -1,5 +1,5 @@
 use crate::components::{Enemy, HUDText, Health, Player, PlayerExperience};
-use crate::resources::{WaveManager, WaveState};
+use crate::resources::WaveManager;
 use bevy::prelude::*;
 
 pub fn update_ui(
@@ -16,18 +16,15 @@ pub fn update_ui(
 
     for mut text in &mut ui_query {
         **text = format!(
-            "Wave: {} | XP: {} | Level: {} | HP: {:.0}/{:.0} | Enemies: {} | {}",
+            "Wave: {} | XP: {} | Level: {} | HP: {:.0}/{:.0} | New Level: {} | Enemies: {} | {}",
             wave_manager.wave,
             player_xp.value,
             player_xp.level,
             player_health.value,
             player_health.max,
+            player_xp.levels_gained_this_wave,
             enemy_count,
-            match wave_manager.wave_state {
-                WaveState::Running =>
-                    format!("Time: {:.1}s", wave_manager.wave_timer.remaining_secs()),
-                WaveState::Ended => "Press SPACE or ENTER to start next wave".to_string(),
-            }
+            format!("Time: {:.1}s", wave_manager.wave_timer.remaining_secs())
         );
     }
 }

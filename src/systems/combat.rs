@@ -1,4 +1,3 @@
-use crate::components::WeaponKind::*;
 use crate::components::{Bullet, Enemy, Player, Weapon};
 use crate::resources::{WaveManager, WaveState};
 use crate::systems::weapons::utils;

@@ -4,6 +4,7 @@ mod resources;
 mod systems;
 
 use crate::resources::{WaveManager, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::systems::player_upgrades::resources::{AppliedUpgrades, AvailableUpgradesResource};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -47,6 +48,8 @@ fn main() {
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
         .init_resource::<WaveManager>()
+        .init_resource::<AppliedUpgrades>()
+        .init_resource::<AvailableUpgradesResource>()
         .add_systems(
             Startup,
             (
@@ -63,7 +66,6 @@ fn main() {
                 player::movement::update_position,
                 player::experience::handle_enemy_death,
                 wave::update_wave_timer,
-                wave::handle_wave_input,
                 game::out_of_bounds_system,
                 enemy::engine::update_spawning,
                 enemy::engine::update_spawned,
@@ -74,6 +76,9 @@ fn main() {
                 engine::move_bullets,
                 collision::check_bullet_enemy_collision,
                 collision::check_player_enemy_collision,
+                player_upgrades::ui::show_upgrade_ui,
+                player_upgrades::engine::handle_upgrade_selection,
+                player_upgrades::engine::handle_next_wave_button,
             ),
         )
         // Rendering
@@ -84,6 +89,7 @@ fn main() {
                 enemy::renderer::render_spawning,
                 hud::update_ui,
                 camera::camera_follow_player,
+                player_upgrades::ui::hide_upgrade_ui,
             ),
         )
         .add_message::<messages::EnemyDeathMessage>()

@@ -16,7 +16,7 @@ pub const PLAYER_SPEED: f32 = 200.0;
 pub const ENEMY_SPEED: f32 = 80.0;
 pub const ENEMY_HEALTH: f32 = 4.0;
 pub const BULLET_SPEED: f32 = 500.0;
-pub const WAVE_DURATION: f32 = 40.0;
+pub const WAVE_DURATION: f32 = 10.0;
 pub const SPAWN_RATE: f32 = 0.5;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
 
