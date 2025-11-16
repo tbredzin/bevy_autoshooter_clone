@@ -24,6 +24,14 @@ pub struct PlayerExperience {
     pub value: u32,
     pub level: u32,
 }
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum WeaponKind {
+    MachineGun,
+    Pistol,
+    Shotgun,
+}
+
 #[derive(Component)]
 pub struct Weapon {
     pub fire_rate: Timer,
@@ -31,12 +39,20 @@ pub struct Weapon {
     pub range: f32,
     pub bullet_color: Color,
     pub bullet_size: f32,
+    pub kind: WeaponKind,
+}
+
+#[derive(Bundle)]
+pub struct WeaponBundle {
+    pub mesh: Mesh2d,
+    pub mesh_material2d: MeshMaterial2d<ColorMaterial>,
+    pub transform: Transform,
+    pub weapon: Weapon,
 }
 
 #[derive(Component)]
 pub struct Bullet {
     pub direction: Vec2,
-    pub damage: f32,
 }
 
 #[derive(Component)]

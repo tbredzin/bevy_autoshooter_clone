@@ -51,8 +51,8 @@ fn main() {
         .add_systems(
             Update,
             (
-                player::player_movement,
-                player::handle_enemy_death,
+                player::movement::update_position,
+                player::experience::handle_enemy_death,
                 wave::update_wave_timer,
                 wave::handle_wave_input,
                 game::out_of_bounds_system,

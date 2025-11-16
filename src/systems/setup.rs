@@ -1,7 +1,6 @@
-use crate::components::{HUDBundle, Health, Player, PlayerBundle, PlayerExperience, Weapon};
-use crate::resources::{TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels};
-use bevy::color::palettes::basic::BLUE;
-use bevy::color::palettes::css::YELLOW;
+use crate::components::*;
+use crate::resources::{tiles_to_pixels, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE};
+use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::Rng;
 
@@ -41,21 +40,44 @@ pub fn setup(
             },
             xp: PlayerExperience { value: 0, level: 1 },
         })
-        .with_child(Weapon {
-            //Machine gun
-            fire_rate: Timer::from_seconds(0.1, TimerMode::Repeating),
-            damage: 1.0,
-            range: tiles_to_pixels(10.0),
-            bullet_color: YELLOW.into(),
-            bullet_size: 3.0,
+        .with_child(WeaponBundle {
+            mesh: Mesh2d(meshes.add(Circle::new(10.0))),
+            mesh_material2d: MeshMaterial2d(materials.add(Color::from(YELLOW))),
+            transform: Transform::from_xyz(-20.0, 0.0, 0.0),
+            weapon: Weapon {
+                fire_rate: Timer::from_seconds(0.1, TimerMode::Repeating),
+                damage: 1.0,
+                range: tiles_to_pixels(10.0),
+                bullet_color: YELLOW.into(),
+                bullet_size: 3.0,
+                kind: WeaponKind::MachineGun,
+            },
         })
-        .with_child(Weapon {
-            // Pistol
-            fire_rate: Timer::from_seconds(1.0, TimerMode::Repeating),
-            damage: 10.0,
-            range: tiles_to_pixels(10.0),
-            bullet_color: BLUE.into(),
-            bullet_size: 10.0,
+        .with_child(WeaponBundle {
+            mesh: Mesh2d(meshes.add(Circle::new(10.0))),
+            mesh_material2d: MeshMaterial2d(materials.add(Color::from(BLUE))),
+            transform: Transform::from_xyz(20.0, 0.0, 0.0),
+            weapon: Weapon {
+                fire_rate: Timer::from_seconds(1.0, TimerMode::Repeating),
+                damage: 10.0,
+                range: tiles_to_pixels(10.0),
+                bullet_color: BLUE.into(),
+                bullet_size: 10.0,
+                kind: WeaponKind::Pistol,
+            },
+        })
+        .with_child(WeaponBundle {
+            mesh: Mesh2d(meshes.add(Circle::new(10.0))),
+            mesh_material2d: MeshMaterial2d(materials.add(Color::from(PINK))),
+            transform: Transform::from_xyz(0.0, 20.0, 0.0),
+            weapon: Weapon {
+                fire_rate: Timer::from_seconds(2.0, TimerMode::Repeating),
+                damage: 100.0,
+                range: tiles_to_pixels(10.0),
+                bullet_color: PINK.into(),
+                bullet_size: 25.0,
+                kind: WeaponKind::Shotgun,
+            },
         });
 
     // HUD

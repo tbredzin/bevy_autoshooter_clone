@@ -1,26 +1,31 @@
-use crate::components::{Bullet, Enemy, Health, Player};
+use crate::components::{Bullet, Enemy, Health, Player, Weapon};
 use bevy::prelude::*;
 
 pub fn check_bullet_enemy_collision(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &GlobalTransform, &Bullet)>,
+    weapons_query: Query<(&Weapon, &Children)>,
+    bullet_query: Query<&Transform, With<Bullet>>,
     mut enemy_query: Query<(&GlobalTransform, &mut Health), With<Enemy>>,
 ) {
     // Collision radius squared (avoid sqrt in distance check)
     const COLLISION_RADIUS_SQ: f32 = 20.0 * 20.0;
 
-    for (bullet_entity, bullet_transform, bullet) in &bullet_query {
-        let bullet_pos = bullet_transform.translation();
+    for (weapon, bullets) in weapons_query {
+        for bullet in bullets {
+            if let Ok(bullet_transform) = bullet_query.get(*bullet) {
+                let bullet_pos = bullet_transform.translation; //.translation();
 
-        // Find first enemy within range
-        for (enemy_transform, mut enemy_health) in &mut enemy_query {
-            let delta = bullet_pos - enemy_transform.translation();
-            let distance_sq = delta.length_squared();
+                // Find first enemy within range
+                for (enemy_transform, mut enemy_health) in &mut enemy_query {
+                    let delta = bullet_pos - enemy_transform.translation();
+                    let distance_sq = delta.length_squared();
 
-            if distance_sq < COLLISION_RADIUS_SQ {
-                commands.entity(bullet_entity).despawn();
-                enemy_health.value = (enemy_health.value - bullet.damage).max(0.0);
-                break; // Bullet consumed, check next bullet
+                    if distance_sq < COLLISION_RADIUS_SQ {
+                        commands.entity(*bullet).despawn();
+                        enemy_health.value = (enemy_health.value - weapon.damage).max(0.0);
+                        break; // Bullet consumed, check next bullet
+                    }
+                }
             }
         }
     }
