@@ -53,6 +53,7 @@ pub struct WeaponBundle {
 #[derive(Component)]
 pub struct Bullet {
     pub direction: Vec2,
+    pub damage: f32,
 }
 
 #[derive(Component)]

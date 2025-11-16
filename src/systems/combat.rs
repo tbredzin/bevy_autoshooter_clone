@@ -1,6 +1,6 @@
 use crate::components::WeaponKind::Shotgun;
 use crate::components::{Bullet, Enemy, Player, Weapon};
-use crate::resources::{BULLET_SPEED, WaveManager, WaveState};
+use crate::resources::{WaveManager, WaveState, BULLET_SPEED};
 use bevy::prelude::*;
 
 pub fn auto_shoot(
@@ -40,11 +40,18 @@ pub fn auto_shoot(
                 };
 
                 // Spawn bullet as child with RELATIVE transform (0, 0, 0)
-                commands.entity(weapon_entity).with_child((
+                commands.spawn((
                     Mesh2d(meshes.add(shape)),
                     MeshMaterial2d(materials.add(weapon.bullet_color)),
-                    Transform::from_xyz(0.0, 0.0, 1.0), // Relative to weapon
-                    Bullet { direction },
+                    Transform::from_translation(weapon_pos).with_translation(Vec3::new(
+                        weapon_pos.x,
+                        weapon_pos.y,
+                        1.0,
+                    )),
+                    Bullet {
+                        direction,
+                        damage: weapon.damage,
+                    },
                 ));
                 weapon.fire_rate.reset();
             }
