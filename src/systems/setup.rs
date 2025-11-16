@@ -1,5 +1,7 @@
 use crate::components::*;
-use crate::resources::{TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels};
+use crate::resources::{
+    tiles_to_pixels, BulletMeshes, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE,
+};
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::Rng;
@@ -22,6 +24,12 @@ pub fn setup(
             Some(UVec2::splat(10)),         // no padding
             None,                           // no offset
         )),
+    });
+    commands.insert_resource(BulletMeshes {
+        circle_small: meshes.add(Circle::new(3.0)),
+        circle_medium: meshes.add(Circle::new(10.0)),
+        circle_large: meshes.add(Circle::new(25.0)),
+        square_large: meshes.add(Rectangle::new(25.0, 25.0)),
     });
 
     // Camera

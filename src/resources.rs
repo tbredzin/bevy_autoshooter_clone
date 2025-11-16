@@ -60,3 +60,11 @@ pub struct TilesTextureAtlas {
     pub texture: Handle<Image>,
     pub layout: Handle<TextureAtlasLayout>,
 }
+
+#[derive(Resource)]
+pub struct BulletMeshes {
+    pub circle_small: Handle<Mesh>,
+    pub circle_medium: Handle<Mesh>,
+    pub circle_large: Handle<Mesh>,
+    pub square_large: Handle<Mesh>,
+}

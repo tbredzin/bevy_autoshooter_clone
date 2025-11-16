@@ -1,6 +1,6 @@
-use crate::components::WeaponKind::Shotgun;
+use crate::components::WeaponKind::*;
 use crate::components::{Bullet, Enemy, Player, Weapon};
-use crate::resources::{WaveManager, WaveState, BULLET_SPEED};
+use crate::resources::{BulletMeshes, WaveManager, WaveState, BULLET_SPEED};
 use bevy::prelude::*;
 
 pub fn auto_shoot(
@@ -11,6 +11,7 @@ pub fn auto_shoot(
     enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
     wave_manager: Res<WaveManager>,
+    bullet_meshes: Res<BulletMeshes>,
 ) {
     if wave_manager.wave_state == WaveState::Ended {
         return;
@@ -33,15 +34,12 @@ pub fn auto_shoot(
                     .truncate()
                     .normalize();
 
-                let shape: Mesh = if weapon.kind == Shotgun {
-                    Mesh::from(Rectangle::new(weapon.bullet_size, weapon.bullet_size))
-                } else {
-                    Mesh::from(Circle::new(weapon.bullet_size))
-                };
-
-                // Spawn bullet as child with RELATIVE transform (0, 0, 0)
                 commands.spawn((
-                    Mesh2d(meshes.add(shape)),
+                    match weapon.kind {
+                        Shotgun => Mesh2d(bullet_meshes.square_large.clone()),
+                        Pistol => Mesh2d(bullet_meshes.circle_medium.clone()),
+                        MachineGun => Mesh2d(bullet_meshes.circle_small.clone()),
+                    },
                     MeshMaterial2d(materials.add(weapon.bullet_color)),
                     Transform::from_translation(weapon_pos).with_translation(Vec3::new(
                         weapon_pos.x,

@@ -1,14 +1,14 @@
 use crate::components::{Bullet, Enemy, Health, MarkedForDespawn, Player};
 use bevy::prelude::*;
 
+// Collision radius squared (avoid sqrt in distance check)
+const COLLISION_RADIUS_SQ: f32 = 20.0 * 20.0;
+
 pub fn check_bullet_enemy_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &GlobalTransform, &Bullet)>,
     mut enemy_query: Query<(&GlobalTransform, &mut Health), With<Enemy>>,
 ) {
-    // Collision radius squared (avoid sqrt in distance check)
-    const COLLISION_RADIUS_SQ: f32 = 20.0 * 20.0;
-
     for (bullet_entity, bullet_transform, bullet) in &bullet_query {
         let bullet_pos = bullet_transform.translation();
 
@@ -38,8 +38,8 @@ pub fn check_player_enemy_collision(
     let player_pos = player_transform.translation();
 
     for (enemy_transform, enemy) in &enemy_query {
-        let distance = player_pos.distance(enemy_transform.translation());
-        if distance < 35.0 {
+        let distance_sq = player_pos.distance_squared(enemy_transform.translation());
+        if distance_sq < COLLISION_RADIUS_SQ {
             player_health.value -= (enemy.damage * time.delta_secs()).max(0.0);
         }
     }
