@@ -1,3 +1,4 @@
+use crate::components::Weapon;
 use bevy::prelude::*;
 
 pub const TILE_SIZE: f32 = 64.0;
@@ -62,9 +63,24 @@ pub struct TilesTextureAtlas {
 }
 
 #[derive(Resource)]
-pub struct BulletMeshes {
+pub struct GeometricMeshes {
     pub circle_small: Handle<Mesh>,
     pub circle_medium: Handle<Mesh>,
     pub circle_large: Handle<Mesh>,
     pub square_large: Handle<Mesh>,
+    pub rectangle_small: Handle<Mesh>,
+    pub rectangle_medium: Handle<Mesh>,
+    pub rectangle_large: Handle<Mesh>,
+}
+
+#[derive(Resource)]
+pub struct ColorMeshes {
+    pub red: Handle<ColorMaterial>,
+    pub black: Handle<ColorMaterial>,
+    pub pink: Handle<ColorMaterial>,
+}
+
+#[derive(Resource)]
+pub struct WeaponsLibrary {
+    pub weapons: Vec<Weapon>,
 }

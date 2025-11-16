@@ -1,4 +1,5 @@
 use crate::systems::enemy::renderer::*;
+use crate::systems::weapons::rendeder::{draw_bullet, draw_weapon};
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -19,41 +20,60 @@ pub struct Health {
     pub value: f32,
     pub max: f32,
 }
+
 #[derive(Component)]
 pub struct PlayerExperience {
     pub value: u32,
     pub level: u32,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum WeaponKind {
     MachineGun,
     Pistol,
     Shotgun,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
+#[component(on_add = draw_weapon)]
 pub struct Weapon {
-    pub fire_rate: Timer,
+    pub cooldown: Timer,
     pub damage: f32,
     pub range: f32,
-    pub bullet_color: Color,
-    pub bullet_size: f32,
     pub kind: WeaponKind,
 }
 
-#[derive(Bundle)]
+/// Defines the circular sector area where a weapon can move
+#[derive(Component, Clone)]
+pub struct WeaponArea {
+    /// Radius from player center where weapon orbits
+    pub orbit_radius: f32,
+    /// How far the weapon can move within its sector (in radians)
+    pub sector_arc: f32,
+    pub center_arc: f32,
+}
+
+impl WeaponArea {
+    pub fn angle_range(&self) -> (f32, f32) {
+        let center = self.center_arc;
+        let half_arc = self.sector_arc / 2.0;
+        (center - half_arc, center + half_arc)
+    }
+}
+
+#[derive(Bundle, Clone)]
 pub struct WeaponBundle {
     pub mesh: Mesh2d,
     pub mesh_material2d: MeshMaterial2d<ColorMaterial>,
-    pub transform: Transform,
     pub weapon: Weapon,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
+#[component(on_add = draw_bullet)]
 pub struct Bullet {
     pub direction: Vec2,
     pub damage: f32,
+    pub kind: WeaponKind,
 }
 
 #[derive(Component)]

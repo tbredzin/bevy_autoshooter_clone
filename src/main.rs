@@ -3,12 +3,13 @@ mod messages;
 mod resources;
 mod systems;
 
-use crate::resources::{WINDOW_HEIGHT, WINDOW_WIDTH, WaveManager};
+use crate::resources::{WaveManager, WINDOW_HEIGHT, WINDOW_WIDTH};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
 use std::time::Duration;
+use systems::weapons::engine;
 use systems::*;
 
 fn main() {
@@ -46,7 +47,15 @@ fn main() {
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
         .init_resource::<WaveManager>()
-        .add_systems(Startup, (setup::setup, setup::setup_background).chain())
+        .add_systems(
+            Startup,
+            (
+                setup::init_resources,
+                setup::spawn_entities,
+                setup::spawn_background,
+            )
+                .chain(),
+        )
         // Logic
         .add_systems(
             Update,
@@ -60,8 +69,9 @@ fn main() {
                 enemy::engine::update_spawned,
                 enemy::engine::update_move,
                 enemy::engine::check_if_dead,
+                engine::update_weapon_positioning,
                 combat::auto_shoot,
-                combat::move_bullets,
+                engine::move_bullets,
                 collision::check_bullet_enemy_collision,
                 collision::check_player_enemy_collision,
             ),
@@ -72,7 +82,7 @@ fn main() {
             (
                 game::despawn_marked_entities,
                 enemy::renderer::render_spawning,
-                ui::update_ui,
+                hud::update_ui,
                 camera::camera_follow_player,
             ),
         )
