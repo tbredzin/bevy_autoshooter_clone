@@ -61,13 +61,6 @@ impl WeaponArea {
     }
 }
 
-#[derive(Bundle, Clone)]
-pub struct WeaponBundle {
-    pub mesh: Mesh2d,
-    pub mesh_material2d: MeshMaterial2d<ColorMaterial>,
-    pub weapon: Weapon,
-}
-
 #[derive(Component, Clone)]
 #[component(on_add = draw_bullet)]
 pub struct Bullet {

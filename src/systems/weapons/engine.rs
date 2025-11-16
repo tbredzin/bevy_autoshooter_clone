@@ -2,18 +2,12 @@ use crate::components::{Bullet, Enemy, Player, Weapon, WeaponArea};
 use crate::resources::{WaveManager, WaveState, BULLET_SPEED};
 use crate::systems::weapons::utils;
 use bevy::math::{Quat, Vec3};
-use bevy::prelude::{Entity, GlobalTransform, Query, Res, Time, Transform, With};
+use bevy::prelude::{GlobalTransform, Query, Res, Time, Transform, With};
 
 /// Smoothly moves and rotates weapons within their designated sectors to aim at nearest enemy
 pub fn update_weapon_positioning(
-    mut weapon_query: Query<(
-        Entity,
-        &GlobalTransform,
-        &mut Transform,
-        &Weapon,
-        &WeaponArea,
-    )>,
-    enemy_query: Query<(Entity, &GlobalTransform), With<Enemy>>,
+    mut weapon_query: Query<(&mut Transform, &Weapon, &WeaponArea)>,
+    enemy_query: Query<&GlobalTransform, With<Enemy>>,
     player_query: Query<&GlobalTransform, With<Player>>,
     time: Res<Time>,
     wave_manager: Res<WaveManager>,
@@ -28,24 +22,10 @@ pub fn update_weapon_positioning(
     };
     let player_pos = player_transform.translation();
 
-    for (weapon_entity, world_weapon_transform, mut weapon_transform, weapon, weapon_area) in
-        &mut weapon_query
-    {
+    for (mut weapon_transform, weapon, weapon_area) in &mut weapon_query {
         // Find nearest enemy within weapon range
-        let nearest_enemy = enemy_query
-            .iter()
-            .filter_map(|enemy_transform| {
-                let enemy_pos = enemy_transform.1.translation();
-                let distance = player_pos.distance(enemy_pos);
-
-                if distance <= weapon.range {
-                    Some((enemy_pos, distance))
-                } else {
-                    None
-                }
-            })
-            .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
-            .map(|(pos, _)| pos);
+        let nearest_enemy =
+            utils::get_nearest_enemy(player_transform, enemy_query.iter().collect(), weapon.range);
 
         let Some(enemy_pos) = nearest_enemy else {
             continue;

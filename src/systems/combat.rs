@@ -1,6 +1,7 @@
 use crate::components::WeaponKind::*;
 use crate::components::{Bullet, Enemy, Player, Weapon};
 use crate::resources::{WaveManager, WaveState};
+use crate::systems::weapons::utils;
 use bevy::prelude::*;
 
 pub fn auto_shoot(
@@ -22,22 +23,14 @@ pub fn auto_shoot(
         }
         let weapon_pos = weapon_transform.translation();
 
-        let Some(nearest_enemy) = enemy_query.iter().min_by_key(|enemy_transform| {
-            weapon_pos.distance(enemy_transform.translation()) as i32
-        }) else {
-            // No enemy -> continue
+        let Some(nearest_enemy) =
+            utils::get_nearest_enemy(weapon_transform, enemy_query.iter().collect(), weapon.range)
+        else {
             continue;
         };
 
-        // No enemy at range for this weapon -> continue
-        if weapon_pos.distance(nearest_enemy.translation()) > weapon.range {
-            continue;
-        }
-
         // Compute direction to enemy
-        let direction = (nearest_enemy.translation() - weapon_pos)
-            .truncate()
-            .normalize();
+        let direction = (nearest_enemy - weapon_pos).truncate().normalize();
 
         // Spawn a new bullet toward that direction
         commands.spawn((
