@@ -1,4 +1,4 @@
-use crate::components::{Enemy, WaveEndedText};
+use crate::components::{Enemy, MarkedForDespawn, WaveEndedText};
 use crate::resources::{SPAWN_RATE, WAVE_DURATION, WaveManager, WaveState};
 use bevy::color::palettes::css::YELLOW;
 use bevy::prelude::*;
@@ -15,7 +15,7 @@ pub fn update_wave_timer(
         WaveState::Running => {
             // Remove pause text if it exists
             if let Ok(entity) = pause_text_query.single() {
-                commands.entity(entity).despawn();
+                commands.entity(entity).insert(MarkedForDespawn);
             }
 
             wave_manager.wave_timer.tick(time.delta());
@@ -27,7 +27,7 @@ pub fn update_wave_timer(
         WaveState::Ended => {
             // Clear all enemies
             for entity in &enemy_query {
-                commands.entity(entity).despawn();
+                commands.entity(entity).insert(MarkedForDespawn);
             }
 
             // Spawn pause text if it doesn't exist

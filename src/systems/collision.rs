@@ -1,10 +1,10 @@
-use crate::components::{Bullet, Enemy, Health, Player, Weapon};
+use crate::components::{Bullet, Enemy, Health, MarkedForDespawn, Player, Weapon};
 use bevy::prelude::*;
 
 pub fn check_bullet_enemy_collision(
     mut commands: Commands,
     weapons_query: Query<(&Weapon, &Children)>,
-    bullet_query: Query<&Transform, With<Bullet>>,
+    bullet_query: Query<&GlobalTransform, With<Bullet>>,
     mut enemy_query: Query<(&GlobalTransform, &mut Health), With<Enemy>>,
 ) {
     // Collision radius squared (avoid sqrt in distance check)
@@ -13,7 +13,7 @@ pub fn check_bullet_enemy_collision(
     for (weapon, bullets) in weapons_query {
         for bullet in bullets {
             if let Ok(bullet_transform) = bullet_query.get(*bullet) {
-                let bullet_pos = bullet_transform.translation; //.translation();
+                let bullet_pos = bullet_transform.translation();
 
                 // Find first enemy within range
                 for (enemy_transform, mut enemy_health) in &mut enemy_query {
@@ -21,7 +21,7 @@ pub fn check_bullet_enemy_collision(
                     let distance_sq = delta.length_squared();
 
                     if distance_sq < COLLISION_RADIUS_SQ {
-                        commands.entity(*bullet).despawn();
+                        commands.entity(*bullet).insert(MarkedForDespawn);
                         enemy_health.value = (enemy_health.value - weapon.damage).max(0.0);
                         break; // Bullet consumed, check next bullet
                     }

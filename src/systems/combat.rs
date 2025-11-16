@@ -1,14 +1,14 @@
 use crate::components::WeaponKind::Shotgun;
 use crate::components::{Bullet, Enemy, Player, Weapon};
-use crate::resources::{WaveManager, WaveState, BULLET_SPEED};
+use crate::resources::{BULLET_SPEED, WaveManager, WaveState};
 use bevy::prelude::*;
 
 pub fn auto_shoot(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    weapons_query: Query<(Entity, &Transform, &mut Weapon)>,
-    enemy_query: Query<&Transform, (With<Enemy>, Without<Player>)>,
+    weapons_query: Query<(Entity, &GlobalTransform, &mut Weapon)>,
+    enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
     wave_manager: Res<WaveManager>,
 ) {
@@ -16,20 +16,20 @@ pub fn auto_shoot(
         return;
     }
 
-    for (weapon_entity, weapon_transform, mut weapon) in weapons_query {
+    for (weapon_entity, weapon_global_transform, mut weapon) in weapons_query {
         weapon.fire_rate.tick(time.delta());
         if weapon.fire_rate.is_finished() {
-            // Find nearest enemy
-            let weapon_pos = weapon_transform.translation;
+            // Get weapon's world position
+            let weapon_pos = weapon_global_transform.translation();
 
             if let Some(nearest_enemy) = enemy_query.iter().min_by_key(|enemy_transform| {
-                weapon_pos.distance(enemy_transform.translation) as i32
+                weapon_pos.distance(enemy_transform.translation()) as i32
             }) {
-                if weapon_pos.distance(nearest_enemy.translation) > weapon.range {
+                if weapon_pos.distance(nearest_enemy.translation()) > weapon.range {
                     continue; // No enemy at range for this weapon
                 }
 
-                let direction = (nearest_enemy.translation - weapon_pos)
+                let direction = (nearest_enemy.translation() - weapon_pos)
                     .truncate()
                     .normalize();
 
@@ -39,10 +39,11 @@ pub fn auto_shoot(
                     Mesh::from(Circle::new(weapon.bullet_size))
                 };
 
+                // Spawn bullet as child with RELATIVE transform (0, 0, 0)
                 commands.entity(weapon_entity).with_child((
                     Mesh2d(meshes.add(shape)),
                     MeshMaterial2d(materials.add(weapon.bullet_color)),
-                    Transform::from_xyz(weapon_pos.x, weapon_pos.y, 1.0),
+                    Transform::from_xyz(0.0, 0.0, 1.0), // Relative to weapon
                     Bullet { direction },
                 ));
                 weapon.fire_rate.reset();

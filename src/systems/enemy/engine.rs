@@ -1,4 +1,4 @@
-use crate::components::{Enemy, Health, Player, Spawning};
+use crate::components::{Enemy, Health, MarkedForDespawn, Player, Spawning};
 use crate::messages::EnemyDeathMessage;
 use crate::resources::{
     ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA, SPAWN_RATE, WaveManager,
@@ -99,7 +99,7 @@ pub fn check_if_dead(
     for (entity, health) in query.iter() {
         if health.value <= 0.0 {
             message_writer.write(EnemyDeathMessage(entity));
-            commands.entity(entity).despawn(); // Optionally despawn the enemy
+            commands.entity(entity).insert(MarkedForDespawn);
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::components::*;
-use crate::resources::{tiles_to_pixels, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE};
+use crate::resources::{TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels};
 use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use rand::Rng;
@@ -67,7 +67,7 @@ pub fn setup(
             },
         })
         .with_child(WeaponBundle {
-            mesh: Mesh2d(meshes.add(Circle::new(10.0))),
+            mesh: Mesh2d(meshes.add(Rectangle::new(20.0, 20.0))),
             mesh_material2d: MeshMaterial2d(materials.add(Color::from(PINK))),
             transform: Transform::from_xyz(0.0, 20.0, 0.0),
             weapon: Weapon {

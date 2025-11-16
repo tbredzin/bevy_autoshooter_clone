@@ -100,3 +100,6 @@ pub struct Spawning {
 pub struct Enemy {
     pub(crate) damage: f32,
 }
+
+#[derive(Component)]
+pub struct MarkedForDespawn;

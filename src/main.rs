@@ -70,6 +70,7 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
+                game::despawn_marked_entities,
                 enemy::renderer::render_spawning,
                 ui::update_ui,
                 camera::camera_follow_player,

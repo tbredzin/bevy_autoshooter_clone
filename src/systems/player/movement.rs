@@ -1,5 +1,5 @@
 use crate::components::Player;
-use crate::resources::{WaveManager, WaveState, GAME_AREA, PLAYER_SPEED};
+use crate::resources::{GAME_AREA, PLAYER_SPEED, WaveManager, WaveState};
 use bevy::prelude::*;
 
 pub fn update_position(
