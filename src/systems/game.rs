@@ -1,13 +1,10 @@
-use crate::components::{MarkedForDespawn, Player, Weapon};
-use crate::resources::{GAME_AREA, tiles_to_pixels};
+use crate::components::MarkedForDespawn;
+use crate::resources::{tiles_to_pixels, GAME_AREA};
 use bevy::prelude::*;
 
 pub fn out_of_bounds_system(
     mut commands: Commands,
-    query: Query<
-        (Entity, &GlobalTransform),
-        (Without<MarkedForDespawn>, Without<Player>, Without<Weapon>),
-    >,
+    query: Query<(Entity, &GlobalTransform), Without<MarkedForDespawn>>,
 ) {
     const MARGIN: f32 = tiles_to_pixels(0.5);
 
