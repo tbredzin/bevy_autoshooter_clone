@@ -25,23 +25,19 @@
 
 ### 🚧 Currently Implementing
 
-- **Upgrade Selection UI System** - Between-wave upgrade choices
+- **Visual Polish**
 
 ## Feature Roadmap (Priority Order)
 
-### 1. Upgrade System ⭐ HIGH PRIORITY
+### 1. Upgrade System v1 ⭐ HIGH PRIORITY
 
 **Status**: In Development
 
-- [ ] Upgrade card UI component
-- [ ] 3 random upgrade choices between waves
-- [ ] Upgrade types:
+- [x] Upgrade card UI component
+- [x] 4 random upgrade choices between waves
+- [x] Upgrade types:
     - Weapon stat improvements (damage, fire rate, range)
-    - Player stat improvements (speed, max HP, HP regen)
-    - New weapon unlocks
-    - Special modifiers (piercing, explosive, multishot)
-- [ ] Persistent upgrade tracking during run
-- [ ] Visual feedback for applied upgrades
+    - Player stat improvements (speed, max HP)
 
 ### 2. Enemy Variety & AI ⭐ HIGH PRIORITY
 
@@ -57,13 +53,11 @@
 
 - [ ] Particle system integration
     - Bullet impact particles
-    - Enemy death explosions
-    - Muzzle flashes
-    - Blood splatter effects
-- [ ] Screen shake on player damage
+    - Enemy death
+- [ ] Visual feedback on player damage
 - [ ] Damage numbers (floating text on hit)
 - [ ] Health bars above enemies
-- [ ] Enemy spawn animations (fade-in or pop)
+- [x] Enemy spawn animations (fade-in or pop)
 - [ ] Sprite animations for player/enemies
 - [ ] Better weapon visuals (actual gun sprites)
 
