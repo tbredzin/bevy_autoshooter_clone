@@ -14,9 +14,11 @@ pub const fn tiles_to_pixels(tiles: f32) -> f32 {
 pub const ENEMY_SPEED: f32 = 80.0;
 pub const ENEMY_HEALTH: f32 = 4.0;
 pub const BULLET_SPEED: f32 = 500.0;
-pub const WAVE_DURATION: f32 = 10.0;
+pub const WAVE_DURATION: f32 = 30.0;
 pub const SPAWN_RATE: f32 = 0.5;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
+pub const ENEMY_BASE_XP: u32 = 1;
+pub const NEXT_LEVEL_RATIO_PERCENT: u32 = 10;
 
 pub const GAME_AREA: Rect = Rect {
     min: Vec2 {
@@ -56,6 +58,12 @@ impl Default for WaveManager {
 
 #[derive(Resource)]
 pub struct TilesTextureAtlas {
+    pub texture: Handle<Image>,
+    pub layout: Handle<TextureAtlasLayout>,
+}
+
+#[derive(Resource)]
+pub struct HUDTextureAtlas {
     pub texture: Handle<Image>,
     pub layout: Handle<TextureAtlasLayout>,
 }

@@ -1,3 +1,4 @@
+use crate::systems::hud::DisplayStatKind;
 use bevy::color::Color;
 use bevy::prelude::Component;
 
@@ -13,6 +14,16 @@ pub struct NextWaveButton;
 #[derive(Component)]
 pub struct UpgradeCard {
     pub upgrade: StatUpgrade,
+}
+
+/// Enum representing all player stats that can be upgraded
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum StatKind {
+    Damage,
+    FireRate,
+    Range,
+    MaxHealth,
+    Speed,
 }
 
 /// Core player statistics that affect gameplay
@@ -39,64 +50,65 @@ impl Default for PlayerStats {
 
 impl PlayerStats {
     pub fn apply_upgrade(&mut self, upgrade: &StatUpgrade) {
-        match upgrade {
-            StatUpgrade::IncreaseDamage(amount) => self.damage_multiplier += amount,
-            StatUpgrade::IncreaseFireRate(amount) => self.fire_rate_multiplier += amount,
-            StatUpgrade::IncreaseRange(amount) => self.range_multiplier += amount,
-            StatUpgrade::IncreaseMaxHealth(amount) => self.max_health += amount,
-            StatUpgrade::IncreaseSpeed(amount) => self.speed_multiplier += amount,
+        match upgrade.kind {
+            StatKind::Damage => self.damage_multiplier += upgrade.value,
+            StatKind::FireRate => self.fire_rate_multiplier += upgrade.value,
+            StatKind::Range => self.range_multiplier += upgrade.value,
+            StatKind::MaxHealth => self.max_health += upgrade.value,
+            StatKind::Speed => self.speed_multiplier += upgrade.value,
+        }
+    }
+
+    /// Get the current value for a specific stat kind
+    pub fn get_value(&self, kind: StatKind) -> f32 {
+        match kind {
+            StatKind::Damage => self.damage_multiplier,
+            StatKind::FireRate => self.fire_rate_multiplier,
+            StatKind::Range => self.range_multiplier,
+            StatKind::MaxHealth => self.max_health,
+            StatKind::Speed => self.speed_multiplier,
+        }
+    }
+
+    /// Format a stat value for display
+    pub fn format_value(&self, kind: StatKind) -> String {
+        match kind {
+            StatKind::MaxHealth => format!("{:.0}", self.max_health),
+            _ => format!("x{:.2}", self.get_value(kind)),
         }
     }
 }
 
+/// Represents an upgrade that can be applied to a stat
 #[derive(Clone, Debug)]
-pub enum StatUpgrade {
-    IncreaseDamage(f32),
-    IncreaseFireRate(f32),
-    IncreaseRange(f32),
-    IncreaseMaxHealth(f32),
-    IncreaseSpeed(f32),
+pub struct StatUpgrade {
+    pub kind: StatKind,
+    pub value: f32,
+    pub rarity: UpgradeRarity,
 }
 
 impl StatUpgrade {
-    pub fn get_display_info(&self) -> (&str, String, Color) {
-        match self {
-            StatUpgrade::IncreaseDamage(amount) => (
-                "Damage Up",
-                format!("+{:.0}% damage", amount * 100.0),
-                Color::srgb(1.0, 0.4, 0.4),
-            ),
-            StatUpgrade::IncreaseFireRate(amount) => (
-                "Fire Rate Up",
-                format!("+{:.0}% fire rate", amount * 100.0),
-                Color::srgb(1.0, 0.8, 0.2),
-            ),
-            StatUpgrade::IncreaseRange(amount) => (
-                "Range Up",
-                format!("+{:.0}% range", amount * 100.0),
-                Color::srgb(0.4, 0.8, 1.0),
-            ),
-            StatUpgrade::IncreaseMaxHealth(amount) => (
-                "Max Health Up",
-                format!("+{:.0} max HP", amount),
-                Color::srgb(0.2, 1.0, 0.2),
-            ),
-            StatUpgrade::IncreaseSpeed(amount) => (
-                "Speed Up",
-                format!("+{:.0}% movement speed", amount * 100.0),
-                Color::srgb(0.4, 1.0, 0.8),
-            ),
+    pub fn new(kind: StatKind, value: f32, rarity: UpgradeRarity) -> Self {
+        Self {
+            kind,
+            value,
+            rarity,
         }
     }
+    pub fn get_display_info(&self) -> (usize, String, Color) {
+        let display = DisplayStatKind::from(self.kind);
+        let (texture_index, name, color) = display.get_display_info();
+        let description = match self.kind {
+            StatKind::MaxHealth => format!("+{:.0} max HP", self.value),
+            _ => format!("+{:.0}% {}", self.value * 100.0, name.to_lowercase()),
+        };
+        (texture_index, description, color)
+    }
 
-    pub fn get_rarity(&self) -> UpgradeRarity {
-        match self {
-            StatUpgrade::IncreaseDamage(_)
-            | StatUpgrade::IncreaseFireRate(_)
-            | StatUpgrade::IncreaseRange(_)
-            | StatUpgrade::IncreaseMaxHealth(_)
-            | StatUpgrade::IncreaseSpeed(_) => UpgradeRarity::Common,
-        }
+    pub fn get_full_title(&self) -> String {
+        let display = DisplayStatKind::from(self.kind);
+        let (_, name, _) = display.get_display_info();
+        format!("{} Up", name)
     }
 }
 

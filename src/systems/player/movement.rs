@@ -8,7 +8,7 @@ use bevy::prelude::{KeyCode, Query, Res, Time, Transform, With};
 
 pub fn update_position(
     keyboard: Res<ButtonInput<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &PlayerStats), With<Player>>,
+    player_query: Query<(&mut Transform, &PlayerStats), With<Player>>,
     time: Res<Time>,
 ) {
     for (mut transform, stats) in player_query {

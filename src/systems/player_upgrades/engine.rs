@@ -14,7 +14,7 @@ pub fn handle_upgrade_selection(
     >,
     card_query: Query<&UpgradeCard>,
     ui_query: Query<Entity, With<UpgradeUI>>,
-    mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
+    mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience), With<Player>>,
     mut weapon_query: Query<(&mut Weapon, &mut WeaponCooldown)>,
 ) {
     for (interaction, child_of, _) in &mut interaction_query {
@@ -85,10 +85,10 @@ pub fn handle_next_wave_button(
 
 fn apply_upgrade(
     upgrade: &StatUpgrade,
-    player_query: &mut Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
+    player_query: &mut Query<(&mut PlayerStats, &mut PlayerExperience), With<Player>>,
     weapon_query: &mut Query<(&mut Weapon, &mut WeaponCooldown)>,
 ) {
-    let Ok((mut stats, mut exp, mut health)) = player_query.single_mut() else {
+    let Ok((mut stats, mut exp)) = player_query.single_mut() else {
         return;
     };
     println!(

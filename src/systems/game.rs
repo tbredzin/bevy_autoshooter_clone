@@ -1,5 +1,5 @@
 use crate::components::MarkedForDespawn;
-use crate::resources::{tiles_to_pixels, GAME_AREA};
+use crate::resources::{GAME_AREA, tiles_to_pixels};
 use bevy::prelude::*;
 
 pub fn out_of_bounds_system(

@@ -6,7 +6,6 @@ use bevy::prelude::*;
 pub struct Health {
     pub value: f32,
 }
-
 impl Default for Health {
     fn default() -> Self {
         Self { value: 100.0 }
@@ -70,7 +69,7 @@ pub struct WaveEndedText;
 pub struct HUDText;
 
 #[derive(Bundle)]
-pub struct HUDBundle {
+pub struct HUDTop {
     text: Text,
     font: TextFont,
     color: TextColor,
@@ -78,7 +77,7 @@ pub struct HUDBundle {
     ui: HUDText,
 }
 
-impl HUDBundle {
+impl HUDTop {
     pub fn new(text: String) -> Self {
         Self {
             text: Text::new(text),
@@ -96,6 +95,11 @@ impl HUDBundle {
         }
     }
 }
+#[derive(Component)]
+pub struct HUDLevelUps {}
+
+#[derive(Component)]
+pub struct HUDLevelUp {}
 
 #[derive(Component)]
 #[component(on_add = on_enemy_spawning)]

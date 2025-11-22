@@ -9,7 +9,7 @@ pub fn auto_shoot(
     enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
 ) {
-    for (weapon_transform, mut weapon, mut cooldown) in weapons_query {
+    for (weapon_transform, weapon, mut cooldown) in weapons_query {
         cooldown.timer.tick(time.delta());
 
         if !cooldown.timer.is_finished() {

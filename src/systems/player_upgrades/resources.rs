@@ -1,4 +1,4 @@
-use crate::systems::player_upgrades::components::StatUpgrade;
+use crate::systems::player_upgrades::components::{StatKind, StatUpgrade, UpgradeRarity};
 use bevy::prelude::Resource;
 use rand::Rng;
 
@@ -11,11 +11,11 @@ impl Default for UpgradePool {
     fn default() -> Self {
         Self {
             upgrades: vec![
-                StatUpgrade::IncreaseDamage(0.15),
-                StatUpgrade::IncreaseFireRate(0.20),
-                StatUpgrade::IncreaseRange(0.25),
-                StatUpgrade::IncreaseMaxHealth(20.0),
-                StatUpgrade::IncreaseSpeed(0.15),
+                StatUpgrade::new(StatKind::Damage, 0.15, UpgradeRarity::Common),
+                StatUpgrade::new(StatKind::FireRate, 0.20, UpgradeRarity::Rare),
+                StatUpgrade::new(StatKind::Range, 0.25, UpgradeRarity::Common),
+                StatUpgrade::new(StatKind::MaxHealth, 20.0, UpgradeRarity::Legendary),
+                StatUpgrade::new(StatKind::Speed, 0.15, UpgradeRarity::Uncommon),
             ],
         }
     }
@@ -23,11 +23,7 @@ impl Default for UpgradePool {
 
 impl UpgradePool {
     pub fn generate_upgrades(&self, count: usize) -> Vec<StatUpgrade> {
-        let weights: Vec<f32> = self
-            .upgrades
-            .iter()
-            .map(|u| u.get_rarity().get_odds())
-            .collect();
+        let weights: Vec<f32> = self.upgrades.iter().map(|u| u.rarity.get_odds()).collect();
 
         let mut rng = rand::rng();
         let mut selected = Vec::new();

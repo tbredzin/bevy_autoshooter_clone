@@ -96,6 +96,12 @@ fn main() {
             (
                 enemy::renderer::render_spawning,
                 hud::update_ui,
+                hud::show_stats_display,
+                hud::update_stats_display,
+                hud::show_level_ups
+                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
+                hud::clear_level_ups
+                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
                 camera::camera_follow_player,
             ),
         )

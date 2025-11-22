@@ -1,5 +1,7 @@
 use crate::components::*;
-use crate::resources::{tiles_to_pixels, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE};
+use crate::resources::{
+    tiles_to_pixels, HUDTextureAtlas, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE,
+};
 use crate::systems::player::components::{Player, PlayerBundle};
 use crate::systems::player::experience::PlayerExperience;
 use crate::systems::player_upgrades::components::PlayerStats;
@@ -14,16 +16,24 @@ pub fn init_resources(
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    // Load spritesheet as tile texture atlas resource
-    let texture = asset_server.load("spritesheet/spritesheet_tiles.png");
     commands.insert_resource(TilesTextureAtlas {
-        texture,
+        texture: asset_server.load("spritesheet/spritesheet_tiles.png"),
         layout: texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
             UVec2::splat(TILE_SIZE as u32), // tile size (width, height)
             27,                             // columns
             20,                             // rows
-            Some(UVec2::splat(10)),         // no padding
+            Some(UVec2::splat(10)),         // padding
             None,                           // no offset
+        )),
+    });
+    commands.insert_resource(HUDTextureAtlas {
+        texture: asset_server.load("spritesheet/IconGodotNode/spritesheet.png"),
+        layout: texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
+            UVec2::splat(16u32), // tile size (width, height)
+            16,                  // columns
+            6,                   // rows
+            None,                // no padding
+            None,                // no offset
         )),
     });
 }
@@ -61,9 +71,27 @@ pub fn spawn_entities(
     // Camera
     commands.spawn((Camera2d, Msaa::Sample4));
 
-    // HUD
-    commands.spawn(HUDBundle::new(
+    // HUD Top bar
+    commands.spawn(HUDTop::new(
         "Wave: 1 | XP: 0 | Level: 1 | HP: 100/100".to_string(),
+    ));
+
+    const NB_LEVEL_UPS_PER_ROW: f32 = 6.0;
+    // HUD Level ups locations
+    commands.spawn((
+        HUDLevelUps {},
+        Node {
+            position_type: PositionType::Absolute,
+            right: Val::Px(20.0),
+            top: Val::Px(10.0),
+            flex_direction: FlexDirection::RowReverse,
+            column_gap: Val::Px(12.0),
+            row_gap: Val::Px(10.0),
+            width: Val::Px(NB_LEVEL_UPS_PER_ROW * (32.0 + 12.0)), // 6x 32+10
+            height: Val::Px(32.0),
+            flex_wrap: FlexWrap::Wrap,
+            ..default()
+        },
     ));
 
     // Player
