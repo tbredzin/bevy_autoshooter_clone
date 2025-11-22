@@ -1,4 +1,5 @@
-use crate::components::{Bullet, Enemy, Health, MarkedForDespawn, Player};
+use crate::components::{Bullet, Enemy, Health, MarkedForDespawn};
+use crate::systems::player::components::Player;
 use bevy::prelude::*;
 
 // Collision radius squared (avoid sqrt in distance check)

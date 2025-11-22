@@ -1,9 +1,10 @@
-use crate::components::{Enemy, Health, MarkedForDespawn, Player, Spawning};
+use crate::components::{Enemy, Health, MarkedForDespawn, Spawning};
 use crate::messages::EnemyDeathMessage;
 use crate::resources::{
-    tiles_to_pixels, WaveManager, WaveState, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED,
-    GAME_AREA, SPAWN_RATE,
+    tiles_to_pixels, WaveManager, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA,
+    SPAWN_RATE,
 };
+use crate::systems::player::components::Player;
 use bevy::prelude::*;
 use rand::distr::weighted::WeightedIndex;
 use rand::distr::Distribution;
@@ -15,10 +16,6 @@ pub fn update_spawning(
     player_query: Query<&GlobalTransform, With<Player>>,
     time: Res<Time>,
 ) -> Result {
-    if wave_manager.wave_state == WaveState::Ended {
-        return Ok(());
-    }
-
     wave_manager.enemy_spawn_timer.tick(time.delta());
     if !wave_manager.enemy_spawn_timer.is_finished() {
         return Ok(());

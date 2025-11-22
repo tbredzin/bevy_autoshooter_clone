@@ -3,7 +3,7 @@ mod messages;
 mod resources;
 mod systems;
 
-use crate::resources::{WaveManager, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::resources::{WaveManager, WaveState, WINDOW_HEIGHT, WINDOW_WIDTH};
 use crate::systems::player_upgrades::resources::{AppliedUpgrades, AvailableUpgradesResource};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
@@ -54,6 +54,7 @@ fn main() {
             Startup,
             (
                 setup::init_resources,
+                weapons::resources::init,
                 setup::spawn_entities,
                 setup::spawn_background,
             )
@@ -61,35 +62,42 @@ fn main() {
         )
         // Logic
         .add_systems(
+            PreUpdate,
+            (game::out_of_bounds_system, game::despawn_marked_entities),
+        )
+        .add_systems(
             Update,
             (
-                player::movement::update_position,
-                player::experience::handle_enemy_death,
                 wave::update_wave_timer,
-                game::out_of_bounds_system,
-                enemy::engine::update_spawning,
-                enemy::engine::update_spawned,
-                enemy::engine::update_move,
-                enemy::engine::check_if_dead,
-                engine::update_weapon_positioning,
-                combat::auto_shoot,
-                engine::move_bullets,
-                collision::check_bullet_enemy_collision,
-                collision::check_player_enemy_collision,
-                player_upgrades::ui::show_upgrade_ui,
-                player_upgrades::engine::handle_upgrade_selection,
-                player_upgrades::engine::handle_next_wave_button,
+                (
+                    player::movement::update_position,
+                    player::experience::handle_enemy_death,
+                    enemy::engine::update_spawning,
+                    enemy::engine::update_spawned,
+                    enemy::engine::update_move,
+                    enemy::engine::check_if_dead,
+                    engine::update_weapon_positioning,
+                    combat::auto_shoot,
+                    collision::check_bullet_enemy_collision,
+                    collision::check_player_enemy_collision,
+                    engine::move_bullets,
+                )
+                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
+                (
+                    player_upgrades::ui::show_upgrade_ui,
+                    player_upgrades::engine::handle_upgrade_selection,
+                    player_upgrades::engine::handle_next_wave_button,
+                )
+                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
             ),
         )
         // Rendering
         .add_systems(
             PostUpdate,
             (
-                game::despawn_marked_entities,
                 enemy::renderer::render_spawning,
                 hud::update_ui,
                 camera::camera_follow_player,
-                player_upgrades::ui::hide_upgrade_ui,
             ),
         )
         .add_message::<messages::EnemyDeathMessage>()

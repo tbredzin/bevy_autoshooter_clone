@@ -2,8 +2,9 @@
 // Add this new file to implement the upgrade selection UI
 
 use crate::components;
-use crate::components::{Player, PlayerExperience, Weapon};
+use crate::components::{PlayerExperience, Weapon};
 use crate::resources::{WaveManager, WaveState};
+use crate::systems::player::components::Player;
 use crate::systems::player_upgrades::components::*;
 use crate::systems::player_upgrades::resources::*;
 use bevy::prelude::*;

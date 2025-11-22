@@ -1,17 +1,15 @@
-use crate::components::Player;
-use crate::resources::{GAME_AREA, PLAYER_SPEED, WaveManager, WaveState};
-use bevy::prelude::*;
+use crate::resources::GAME_AREA;
+use crate::systems::player::components::Player;
+use crate::systems::player::resources::PLAYER_SPEED;
+use bevy::input::ButtonInput;
+use bevy::math::Vec2;
+use bevy::prelude::{KeyCode, Query, Res, Time, Transform, With};
 
 pub fn update_position(
     keyboard: Res<ButtonInput<KeyCode>>,
-    wave_manager: Res<WaveManager>,
     mut player_query: Query<&mut Transform, With<Player>>,
     time: Res<Time>,
 ) {
-    if wave_manager.wave_state == WaveState::Ended {
-        return;
-    }
-
     let Ok(mut transform) = player_query.single_mut() else {
         return;
     };

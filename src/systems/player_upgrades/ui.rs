@@ -1,6 +1,5 @@
 use crate::components;
-use crate::components::{MarkedForDespawn, Player};
-use crate::resources::{WaveManager, WaveState};
+use crate::systems::player::components::Player;
 use crate::systems::player_upgrades::components::*;
 use crate::systems::player_upgrades::resources::AvailableUpgradesResource;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
@@ -9,13 +8,12 @@ use bevy::prelude::*;
 /// Spawns the upgrade UI when wave ends
 pub fn show_upgrade_ui(
     mut commands: Commands,
-    wave_manager: Res<WaveManager>,
     available_upgrades: Res<AvailableUpgradesResource>,
     ui_query: Query<Entity, With<UpgradeUI>>,
     player_query: Query<&components::PlayerExperience, With<Player>>,
 ) {
     // Only spawn UI once when wave ends
-    if wave_manager.wave_state == WaveState::Ended && ui_query.is_empty() {
+    if ui_query.is_empty() {
         let Ok(player_xp) = player_query.single() else {
             return;
         };
@@ -42,27 +40,11 @@ pub fn show_upgrade_ui(
     }
 }
 
-/// Removes upgrade UI when wave starts
-pub fn hide_upgrade_ui(
-    mut commands: Commands,
-    wave_manager: Res<WaveManager>,
-    ui_query: Query<Entity, With<UpgradeUI>>,
-    button_query: Query<Entity, With<NextWaveButton>>,
-) {
-    if wave_manager.wave_state == WaveState::Running {
-        for entity in &ui_query {
-            commands.entity(entity).insert(MarkedForDespawn);
-        }
-        for entity in &button_query {
-            commands.entity(entity).insert(MarkedForDespawn);
-        }
-    }
-}
-
 // Utility functions
 
 fn show_upgrades(upgrades: Vec<UpgradeType>, parent: &mut RelatedSpawnerCommands<ChildOf>) {
     // Title
+    println!("Upgrades: {:?}", upgrades);
     parent.spawn((
         Text::new("Choose an Upgrade"),
         TextFont {
@@ -161,7 +143,7 @@ fn spawn_upgrade_card(parent: &mut RelatedSpawnerCommands<ChildOf>, upgrade: Upg
         .with_children(|parent| {
             // Rarity badge
             parent.spawn((
-                Text::new(format!("{:?}", rarity)),
+                Text::new(rarity.to_string()),
                 TextFont {
                     font_size: 16.0,
                     ..default()

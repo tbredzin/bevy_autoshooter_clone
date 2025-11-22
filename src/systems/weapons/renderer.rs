@@ -1,6 +1,6 @@
 use crate::components::WeaponKind::{MachineGun, Pistol, Shotgun};
 use crate::components::{Bullet, Weapon};
-use crate::resources::{ColorMeshes, GeometricMeshes};
+use crate::systems::weapons::resources::{ColorMeshes, GeometricMeshes};
 use bevy::ecs::lifecycle::HookContext;
 use bevy::ecs::world::DeferredWorld;
 use bevy::mesh::Mesh2d;
@@ -26,7 +26,6 @@ pub fn draw_bullet(mut world: DeferredWorld, context: HookContext) {
         .entity(context.entity)
         .insert((Mesh2d(mesh), MeshMaterial2d(material2d)));
 }
-
 pub fn draw_weapon(mut world: DeferredWorld, context: HookContext) {
     // Create mesh and material
     let Some(weapon) = world.get::<Weapon>(context.entity) else {

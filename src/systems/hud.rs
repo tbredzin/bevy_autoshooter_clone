@@ -1,5 +1,6 @@
-use crate::components::{Enemy, HUDText, Health, Player, PlayerExperience};
+use crate::components::{Enemy, HUDText, Health, PlayerExperience};
 use crate::resources::WaveManager;
+use crate::systems::player::components::Player;
 use bevy::prelude::*;
 
 pub fn update_ui(

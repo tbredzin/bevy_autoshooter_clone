@@ -1,5 +1,6 @@
-use crate::components::{Bullet, Enemy, Player, Weapon, WeaponArea};
-use crate::resources::{WaveManager, WaveState, BULLET_SPEED};
+use crate::components::{Bullet, Enemy, Weapon, WeaponArea};
+use crate::resources::BULLET_SPEED;
+use crate::systems::player::components::Player;
 use crate::systems::weapons::utils;
 use bevy::math::{Quat, Vec3};
 use bevy::prelude::{GlobalTransform, Query, Res, Time, Transform, With};
@@ -10,12 +11,7 @@ pub fn update_weapon_positioning(
     enemy_query: Query<&GlobalTransform, With<Enemy>>,
     player_query: Query<&GlobalTransform, With<Player>>,
     time: Res<Time>,
-    wave_manager: Res<WaveManager>,
 ) {
-    if wave_manager.wave_state == WaveState::Ended {
-        return;
-    }
-
     // Get player location
     let Ok(player_transform) = player_query.single() else {
         return;

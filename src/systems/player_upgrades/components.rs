@@ -1,5 +1,7 @@
 use bevy::color::Color;
 use bevy::prelude::Component;
+use std::fmt;
+use std::fmt::Formatter;
 
 #[derive(Component)]
 pub struct UpgradeUI;
@@ -107,6 +109,12 @@ pub enum UpgradeRarity {
     Uncommon,
     Rare,
     Legendary,
+}
+
+impl fmt::Display for UpgradeRarity {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 impl UpgradeRarity {

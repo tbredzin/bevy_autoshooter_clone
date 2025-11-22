@@ -1,5 +1,5 @@
-use crate::components::{Bullet, Enemy, Player, Weapon};
-use crate::resources::{WaveManager, WaveState};
+use crate::components::{Bullet, Enemy, Weapon};
+use crate::systems::player::components::Player;
 use crate::systems::weapons::utils;
 use bevy::prelude::*;
 
@@ -8,12 +8,7 @@ pub fn auto_shoot(
     weapons_query: Query<(&GlobalTransform, &mut Weapon)>,
     enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
-    wave_manager: Res<WaveManager>,
 ) {
-    if wave_manager.wave_state == WaveState::Ended {
-        return;
-    }
-
     for (weapon_transform, mut weapon) in weapons_query {
         weapon.cooldown.tick(time.delta());
 

@@ -1,5 +1,6 @@
-use crate::components::{Health, Player, PlayerExperience};
+use crate::components::{Health, PlayerExperience};
 use crate::messages::EnemyDeathMessage;
+use crate::systems::player::components::Player;
 use bevy::prelude::*;
 
 pub fn handle_enemy_death(

@@ -1,3 +1,5 @@
+mod components;
 pub mod engine;
-pub mod rendeder;
-pub(crate) mod utils;
+pub mod renderer;
+pub mod resources;
+pub mod utils;

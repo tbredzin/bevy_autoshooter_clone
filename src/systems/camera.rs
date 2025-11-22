@@ -1,5 +1,5 @@
-use crate::components::Player;
-use crate::resources::{GAME_AREA, tiles_to_pixels};
+use crate::resources::{tiles_to_pixels, GAME_AREA};
+use crate::systems::player::components::Player;
 use bevy::prelude::*;
 
 /// Smoothly follows the player with the camera, clamped to game boundaries
