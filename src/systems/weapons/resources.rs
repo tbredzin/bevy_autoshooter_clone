@@ -6,8 +6,7 @@ use bevy::color::palettes::basic::{BLACK, RED};
 use bevy::color::palettes::css::PINK;
 use bevy::color::Color;
 use bevy::mesh::Mesh;
-use bevy::prelude::TimerMode::Repeating;
-use bevy::prelude::{Circle, ColorMaterial, Commands, Rectangle, ResMut, Resource, Timer};
+use bevy::prelude::{Circle, ColorMaterial, Commands, Rectangle, ResMut, Resource};
 #[derive(Resource)]
 pub struct GeometricMeshes {
     pub circle_small: Handle<Mesh>,
@@ -57,21 +56,30 @@ pub fn init(
         weapons: vec![
             Weapon {
                 kind: MachineGun,
-                cooldown: Timer::from_seconds(0.1, Repeating),
-                damage: 0.1,
-                range: tiles_to_pixels(10.0),
+                base_cooldown: 0.1,
+                base_damage: 0.1,
+                base_range: tiles_to_pixels(10.0),
+                damage_multiplier: 1.0,
+                fire_rate_multiplier: 1.0,
+                range_multiplier: 1.0,
             },
             Weapon {
-                cooldown: Timer::from_seconds(1.0, Repeating),
-                damage: 5.0,
-                range: tiles_to_pixels(12.0),
+                base_cooldown: 1.0,
+                base_damage: 5.0,
+                base_range: tiles_to_pixels(12.0),
                 kind: Pistol,
+                damage_multiplier: 1.0,
+                fire_rate_multiplier: 1.0,
+                range_multiplier: 1.0,
             },
             Weapon {
-                cooldown: Timer::from_seconds(1.0, Repeating),
-                damage: 100.0,
-                range: tiles_to_pixels(8.0),
+                base_cooldown: 1.0,
+                base_damage: 100.0,
+                base_range: tiles_to_pixels(8.0),
                 kind: Shotgun,
+                damage_multiplier: 1.0,
+                fire_rate_multiplier: 1.0,
+                range_multiplier: 1.0,
             },
         ],
     });

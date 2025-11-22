@@ -4,7 +4,7 @@ mod resources;
 mod systems;
 
 use crate::resources::{WaveManager, WaveState, WINDOW_HEIGHT, WINDOW_WIDTH};
-use crate::systems::player_upgrades::resources::{AppliedUpgrades, AvailableUpgradesResource};
+use crate::systems::player_upgrades::resources::UpgradePool;
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -48,8 +48,7 @@ fn main() {
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
         .init_resource::<WaveManager>()
-        .init_resource::<AppliedUpgrades>()
-        .init_resource::<AvailableUpgradesResource>()
+        .init_resource::<UpgradePool>()
         .add_systems(
             Startup,
             (

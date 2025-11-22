@@ -1,55 +1,50 @@
-use crate::systems::player_upgrades::components::UpgradeType;
+use crate::systems::player_upgrades::components::StatUpgrade;
 use bevy::prelude::Resource;
-use rand::distr::weighted::WeightedIndex;
-use rand::distr::Distribution;
 use rand::Rng;
 
-#[derive(Resource, Default)]
-pub struct AppliedUpgrades {
-    pub damage_multiplier: f32,
-    pub fire_rate_multiplier: f32,
-    pub range_multiplier: f32,
-    pub speed_multiplier: f32,
-    pub has_piercing: bool,
-    pub multishot_count: u32,
-    pub has_explosive: bool,
-}
 #[derive(Resource)]
-pub struct AvailableUpgradesResource {
-    pub upgrades: Vec<UpgradeType>,
-    pub weights: Vec<f32>,
+pub struct UpgradePool {
+    pub upgrades: Vec<StatUpgrade>,
 }
 
-impl Default for AvailableUpgradesResource {
+impl Default for UpgradePool {
     fn default() -> Self {
-        let all_upgrades = vec![
-            UpgradeType::IncreaseDamage(0.15),
-            UpgradeType::IncreaseFireRate(0.2),
-            UpgradeType::IncreaseRange(0.25),
-            UpgradeType::IncreaseMaxHealth(20.0),
-            UpgradeType::IncreaseSpeed(0.15),
-            UpgradeType::HealPlayer(30.0),
-            UpgradeType::AddPiercing,
-            UpgradeType::AddMultishot(2),
-            UpgradeType::AddExplosive,
-        ];
         Self {
-            upgrades: all_upgrades.clone(),
-            weights: all_upgrades
-                .clone()
-                .iter()
-                .map(|a| a.get_rarity().get_odds())
-                .collect(),
+            upgrades: vec![
+                StatUpgrade::IncreaseDamage(0.15),
+                StatUpgrade::IncreaseFireRate(0.20),
+                StatUpgrade::IncreaseRange(0.25),
+                StatUpgrade::IncreaseMaxHealth(20.0),
+                StatUpgrade::IncreaseSpeed(0.15),
+            ],
         }
     }
 }
-impl AvailableUpgradesResource {
-    pub(crate) fn generate(&self, rng: &mut impl Rng, count: u32) -> Vec<UpgradeType> {
-        let selector = WeightedIndex::new(self.weights.clone()).unwrap();
-        let mut upgrades: Vec<UpgradeType> = vec![];
+
+impl UpgradePool {
+    pub fn generate_upgrades(&self, count: usize) -> Vec<StatUpgrade> {
+        let weights: Vec<f32> = self
+            .upgrades
+            .iter()
+            .map(|u| u.get_rarity().get_odds())
+            .collect();
+
+        let mut rng = rand::rng();
+        let mut selected = Vec::new();
+
         for _ in 0..count {
-            upgrades.push(self.upgrades[selector.sample(rng)].clone());
+            let total_weight: f32 = weights.iter().sum();
+            let mut roll = rng.random_range(0.0..total_weight);
+
+            for (i, &weight) in weights.iter().enumerate() {
+                roll -= weight;
+                if roll <= 0.0 {
+                    selected.push(self.upgrades[i].clone());
+                    break;
+                }
+            }
         }
-        upgrades
+
+        selected
     }
 }

@@ -1,7 +1,5 @@
 use bevy::color::Color;
 use bevy::prelude::Component;
-use std::fmt;
-use std::fmt::Formatter;
 
 #[derive(Component)]
 pub struct UpgradeUI;
@@ -14,91 +12,90 @@ pub struct NextWaveButton;
 
 #[derive(Component)]
 pub struct UpgradeCard {
-    pub upgrade: UpgradeType,
+    pub upgrade: StatUpgrade,
+}
+
+/// Core player statistics that affect gameplay
+#[derive(Component, Clone, Debug)]
+pub struct PlayerStats {
+    pub damage_multiplier: f32,
+    pub fire_rate_multiplier: f32,
+    pub range_multiplier: f32,
+    pub max_health: f32,
+    pub speed_multiplier: f32,
+}
+
+impl Default for PlayerStats {
+    fn default() -> Self {
+        Self {
+            damage_multiplier: 1.0,
+            fire_rate_multiplier: 1.0,
+            range_multiplier: 1.0,
+            max_health: 100.0,
+            speed_multiplier: 1.0,
+        }
+    }
+}
+
+impl PlayerStats {
+    pub fn apply_upgrade(&mut self, upgrade: &StatUpgrade) {
+        match upgrade {
+            StatUpgrade::IncreaseDamage(amount) => self.damage_multiplier += amount,
+            StatUpgrade::IncreaseFireRate(amount) => self.fire_rate_multiplier += amount,
+            StatUpgrade::IncreaseRange(amount) => self.range_multiplier += amount,
+            StatUpgrade::IncreaseMaxHealth(amount) => self.max_health += amount,
+            StatUpgrade::IncreaseSpeed(amount) => self.speed_multiplier += amount,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
-pub enum UpgradeType {
-    // Weapon upgrades
+pub enum StatUpgrade {
     IncreaseDamage(f32),
     IncreaseFireRate(f32),
     IncreaseRange(f32),
-
-    // Player upgrades
     IncreaseMaxHealth(f32),
     IncreaseSpeed(f32),
-    HealPlayer(f32),
-
-    // Special upgrades
-    AddPiercing,
-    AddMultishot(u32),
-    AddExplosive,
 }
 
-impl UpgradeType {
+impl StatUpgrade {
     pub fn get_display_info(&self) -> (&str, String, Color) {
         match self {
-            UpgradeType::IncreaseDamage(amount) => (
+            StatUpgrade::IncreaseDamage(amount) => (
                 "Damage Up",
-                format!("+{:.0}% damage to all weapons", amount * 100.0),
+                format!("+{:.0}% damage", amount * 100.0),
                 Color::srgb(1.0, 0.4, 0.4),
             ),
-            UpgradeType::IncreaseFireRate(amount) => (
+            StatUpgrade::IncreaseFireRate(amount) => (
                 "Fire Rate Up",
-                format!("+{:.0}% fire rate to all weapons", amount * 100.0),
+                format!("+{:.0}% fire rate", amount * 100.0),
                 Color::srgb(1.0, 0.8, 0.2),
             ),
-            UpgradeType::IncreaseRange(amount) => (
+            StatUpgrade::IncreaseRange(amount) => (
                 "Range Up",
-                format!("+{:.0}% range to all weapons", amount * 100.0),
+                format!("+{:.0}% range", amount * 100.0),
                 Color::srgb(0.4, 0.8, 1.0),
             ),
-            UpgradeType::IncreaseMaxHealth(amount) => (
+            StatUpgrade::IncreaseMaxHealth(amount) => (
                 "Max Health Up",
-                format!("+{:.0} max health", amount),
+                format!("+{:.0} max HP", amount),
                 Color::srgb(0.2, 1.0, 0.2),
             ),
-            UpgradeType::IncreaseSpeed(amount) => (
+            StatUpgrade::IncreaseSpeed(amount) => (
                 "Speed Up",
                 format!("+{:.0}% movement speed", amount * 100.0),
                 Color::srgb(0.4, 1.0, 0.8),
-            ),
-            UpgradeType::HealPlayer(amount) => (
-                "Heal",
-                format!("Restore {:.0} health", amount),
-                Color::srgb(1.0, 0.2, 0.6),
-            ),
-            UpgradeType::AddPiercing => (
-                "Piercing Shots",
-                "Bullets pierce through enemies".to_string(),
-                Color::srgb(0.8, 0.2, 1.0),
-            ),
-            UpgradeType::AddMultishot(count) => (
-                "Multishot",
-                format!("Fire {} additional projectiles", count),
-                Color::srgb(1.0, 0.6, 0.2),
-            ),
-            UpgradeType::AddExplosive => (
-                "Explosive Rounds",
-                "Bullets explode on impact".to_string(),
-                Color::srgb(1.0, 0.5, 0.0),
             ),
         }
     }
 
     pub fn get_rarity(&self) -> UpgradeRarity {
         match self {
-            UpgradeType::IncreaseDamage(_)
-            | UpgradeType::IncreaseFireRate(_)
-            | UpgradeType::IncreaseRange(_)
-            | UpgradeType::IncreaseMaxHealth(_)
-            | UpgradeType::HealPlayer(_) => UpgradeRarity::Common,
-
-            UpgradeType::IncreaseSpeed(_) => UpgradeRarity::Uncommon,
-
-            UpgradeType::AddPiercing | UpgradeType::AddMultishot(_) => UpgradeRarity::Rare,
-
-            UpgradeType::AddExplosive => UpgradeRarity::Legendary,
+            StatUpgrade::IncreaseDamage(_)
+            | StatUpgrade::IncreaseFireRate(_)
+            | StatUpgrade::IncreaseRange(_)
+            | StatUpgrade::IncreaseMaxHealth(_)
+            | StatUpgrade::IncreaseSpeed(_) => UpgradeRarity::Common,
         }
     }
 }
@@ -109,12 +106,6 @@ pub enum UpgradeRarity {
     Uncommon,
     Rare,
     Legendary,
-}
-
-impl fmt::Display for UpgradeRarity {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
 }
 
 impl UpgradeRarity {

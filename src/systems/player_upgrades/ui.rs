@@ -1,16 +1,16 @@
-use crate::components;
+use crate::systems::player;
 use crate::systems::player::components::Player;
 use crate::systems::player_upgrades::components::*;
-use crate::systems::player_upgrades::resources::AvailableUpgradesResource;
+use crate::systems::player_upgrades::resources::UpgradePool;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::prelude::*;
 
 /// Spawns the upgrade UI when wave ends
 pub fn show_upgrade_ui(
     mut commands: Commands,
-    available_upgrades: Res<AvailableUpgradesResource>,
+    upgrade_pool: Res<UpgradePool>,
     ui_query: Query<Entity, With<UpgradeUI>>,
-    player_query: Query<&components::PlayerExperience, With<Player>>,
+    player_query: Query<&player::experience::PlayerExperience, With<Player>>,
 ) {
     // Only spawn UI once when wave ends
     if ui_query.is_empty() {
@@ -31,10 +31,11 @@ pub fn show_upgrade_ui(
                 BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
             ))
             .with_children(|parent| {
-                if player_xp.levels_gained_this_wave == 0 {
+                println!("{:?}", player_xp);
+                if player_xp.new_levels == 0 {
                     show_no_upgrade(parent)
                 } else {
-                    show_upgrades(available_upgrades.generate(&mut rand::rng(), 4), parent)
+                    show_upgrades(upgrade_pool.generate_upgrades(4), parent)
                 };
             });
     }
@@ -42,7 +43,7 @@ pub fn show_upgrade_ui(
 
 // Utility functions
 
-fn show_upgrades(upgrades: Vec<UpgradeType>, parent: &mut RelatedSpawnerCommands<ChildOf>) {
+fn show_upgrades(upgrades: Vec<StatUpgrade>, parent: &mut RelatedSpawnerCommands<ChildOf>) {
     // Title
     println!("Upgrades: {:?}", upgrades);
     parent.spawn((
@@ -117,7 +118,7 @@ fn show_no_upgrade(parent: &mut RelatedSpawnerCommands<ChildOf>) {
         });
 }
 
-fn spawn_upgrade_card(parent: &mut RelatedSpawnerCommands<ChildOf>, upgrade: UpgradeType) {
+fn spawn_upgrade_card(parent: &mut RelatedSpawnerCommands<ChildOf>, upgrade: StatUpgrade) {
     let (title, description, icon_color) = upgrade.get_display_info();
     let rarity = upgrade.get_rarity();
     let border_color = rarity.get_color();
@@ -143,7 +144,7 @@ fn spawn_upgrade_card(parent: &mut RelatedSpawnerCommands<ChildOf>, upgrade: Upg
         .with_children(|parent| {
             // Rarity badge
             parent.spawn((
-                Text::new(rarity.to_string()),
+                Text::new(format!("{:?}", rarity)),
                 TextFont {
                     font_size: 16.0,
                     ..default()

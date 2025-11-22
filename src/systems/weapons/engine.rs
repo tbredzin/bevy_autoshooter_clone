@@ -20,8 +20,11 @@ pub fn update_weapon_positioning(
 
     for (mut weapon_transform, weapon, weapon_area) in &mut weapon_query {
         // Find nearest enemy within weapon range
-        let nearest_enemy =
-            utils::get_nearest_enemy(player_transform, enemy_query.iter().collect(), weapon.range);
+        let nearest_enemy = utils::get_nearest_enemy(
+            player_transform,
+            enemy_query.iter().collect(),
+            weapon.base_range * weapon.range_multiplier,
+        );
 
         let Some(enemy_pos) = nearest_enemy else {
             continue;

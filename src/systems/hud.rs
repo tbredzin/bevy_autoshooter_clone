@@ -1,6 +1,7 @@
-use crate::components::{Enemy, HUDText, Health, PlayerExperience};
+use crate::components::{Enemy, HUDText, Health};
 use crate::resources::WaveManager;
 use crate::systems::player::components::Player;
+use crate::systems::player::experience::PlayerExperience;
 use bevy::prelude::*;
 
 pub fn update_ui(
@@ -17,13 +18,12 @@ pub fn update_ui(
 
     for mut text in &mut ui_query {
         **text = format!(
-            "Wave: {} | XP: {} | Level: {} | HP: {:.0}/{:.0} | New Level: {} | Enemies: {} | {}",
+            "Wave: {} | XP: {} | Level: {} | HP: {:.0} | New Level: {} | Enemies: {} | {}",
             wave_manager.wave,
             player_xp.value,
             player_xp.level,
             player_health.value,
-            player_health.max,
-            player_xp.levels_gained_this_wave,
+            player_xp.new_levels,
             enemy_count,
             format!("Time: {:.1}s", wave_manager.wave_timer.remaining_secs())
         );

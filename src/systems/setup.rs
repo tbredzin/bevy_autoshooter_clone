@@ -1,8 +1,11 @@
 use crate::components::*;
 use crate::resources::{tiles_to_pixels, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE};
 use crate::systems::player::components::{Player, PlayerBundle};
+use crate::systems::player::experience::PlayerExperience;
+use crate::systems::player_upgrades::components::PlayerStats;
 use crate::systems::weapons::resources::WeaponsLibrary;
 use bevy::prelude::*;
+use bevy::time::TimerMode::Repeating;
 use rand::Rng;
 use std::f32::consts;
 
@@ -70,6 +73,7 @@ pub fn spawn_entities(
             player: Player {},
             health: Health::default(),
             xp: PlayerExperience::default(),
+            stats: PlayerStats::default(),
         },
         Mesh2d(meshes.add(Circle::new(20.0))),
         MeshMaterial2d(materials.add(Color::srgb(0.2, 0.6, 1.0))),
@@ -84,6 +88,9 @@ pub fn spawn_entities(
         let angle = consts::TAU * (index as f32) / (total_weapons as f32);
         player_entity.with_child((
             weapon.clone(),
+            WeaponCooldown {
+                timer: Timer::from_seconds(weapon.base_cooldown, Repeating),
+            },
             Transform::from_xyz(angle.cos() * orbit_radius, angle.sin() * orbit_radius, 0.0),
             WeaponArea {
                 orbit_radius: orbit_radius.max(10.0),

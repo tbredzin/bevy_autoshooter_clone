@@ -5,32 +5,11 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct Health {
     pub value: f32,
-    pub max: f32,
 }
 
 impl Default for Health {
     fn default() -> Self {
-        Self {
-            value: 100.0,
-            max: 100.0,
-        }
-    }
-}
-
-#[derive(Component)]
-pub struct PlayerExperience {
-    pub value: u32,
-    pub level: u32,
-    pub levels_gained_this_wave: u32,
-}
-
-impl Default for PlayerExperience {
-    fn default() -> Self {
-        Self {
-            value: 0,
-            level: 1,
-            levels_gained_this_wave: 0,
-        }
+        Self { value: 100.0 }
     }
 }
 
@@ -44,10 +23,18 @@ pub enum WeaponKind {
 #[derive(Component, Clone)]
 #[component(on_add = draw_weapon)]
 pub struct Weapon {
-    pub cooldown: Timer,
-    pub damage: f32,
-    pub range: f32,
+    pub base_damage: f32,
+    pub base_cooldown: f32,
+    pub base_range: f32,
     pub kind: WeaponKind,
+    // Calculated from PlayerStats:
+    pub damage_multiplier: f32,
+    pub fire_rate_multiplier: f32,
+    pub range_multiplier: f32,
+}
+#[derive(Component, Clone)]
+pub struct WeaponCooldown {
+    pub timer: Timer,
 }
 
 /// Defines the circular sector area where a weapon can move

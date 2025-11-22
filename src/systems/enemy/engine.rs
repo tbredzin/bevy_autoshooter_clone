@@ -57,7 +57,6 @@ pub fn update_spawned(
                 Enemy { damage: 10.0 },
                 Health {
                     value: ENEMY_HEALTH,
-                    max: ENEMY_HEALTH,
                 },
             ));
         }

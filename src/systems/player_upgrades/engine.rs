@@ -1,19 +1,11 @@
-// src/systems/upgrade_system.rs
-// Add this new file to implement the upgrade selection UI
-
-use crate::components;
-use crate::components::{PlayerExperience, Weapon};
+use crate::components::{Health, Weapon, WeaponCooldown};
 use crate::resources::{WaveManager, WaveState};
 use crate::systems::player::components::Player;
+use crate::systems::player::experience::PlayerExperience;
 use crate::systems::player_upgrades::components::*;
-use crate::systems::player_upgrades::resources::*;
 use bevy::prelude::*;
-use components::Health;
-// ============================================================================
-// Systems
-// ============================================================================
+use bevy::time::TimerMode::Repeating;
 
-/// Handles upgrade selection button clicks
 pub fn handle_upgrade_selection(
     mut commands: Commands,
     mut interaction_query: Query<
@@ -22,42 +14,36 @@ pub fn handle_upgrade_selection(
     >,
     card_query: Query<&UpgradeCard>,
     ui_query: Query<Entity, With<UpgradeUI>>,
-    mut applied_upgrades: ResMut<AppliedUpgrades>,
-    mut player_query: Query<(&mut Health, &mut PlayerExperience), With<Player>>,
-    mut weapon_query: Query<&mut Weapon>,
+    mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
+    mut weapon_query: Query<(&mut Weapon, &mut WeaponCooldown)>,
 ) {
     for (interaction, child_of, _) in &mut interaction_query {
         if *interaction == Interaction::Pressed {
-            // Get the upgrade from the parent card
+            println!("handle_upgrade_selection: {:?}", interaction);
             if let Ok(card) = card_query.get(child_of.parent()) {
-                apply_upgrade(
-                    &card.upgrade,
-                    &mut applied_upgrades,
-                    &mut player_query,
-                    &mut weapon_query,
-                );
-
-                // Remove just the upgrade UI and show next wave button
+                apply_upgrade(&card.upgrade, &mut player_query, &mut weapon_query);
+                // Remove UI and show next wave button
                 for entity in &ui_query {
                     commands.entity(entity).despawn();
                 }
+            } else {
+                println!("handle_upgrade_selection: card not found");
             }
         }
     }
 }
 
-/// Handles next wave button clicks
 pub fn handle_next_wave_button(
     mut commands: Commands,
     mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<NextWaveButton>)>,
     button_query: Query<Entity, With<NextWaveButton>>,
     ui_query: Query<Entity, With<UpgradeUI>>,
     mut wave_manager: ResMut<WaveManager>,
-    mut player_query: Query<&mut components::PlayerExperience, With<Player>>,
+    mut player_query: Query<(&mut PlayerExperience, &PlayerStats, &mut Health), With<Player>>,
 ) {
     for interaction in &mut interaction_query {
         if *interaction == Interaction::Pressed {
-            println!("Next Wave button clicked!"); // Debug
+            println!("Next Wave button clicked!");
 
             // Remove button and UI
             for entity in &button_query {
@@ -87,75 +73,41 @@ pub fn handle_next_wave_button(
                 ));
             wave_manager.enemy_spawn_timer.reset();
 
-            // Reset player's level counter for the new wave
-            if let Ok(mut experience) = player_query.single_mut() {
-                println!(
-                    "Resetting level counter from {}",
-                    experience.levels_gained_this_wave
-                );
-                experience.levels_gained_this_wave = 0;
+            // Reset player's counters and health
+            for (mut experience, stats, mut health) in player_query.iter_mut() {
+                println!("Resetting level counter from {}", experience.new_levels);
+                experience.new_levels = 0;
+                health.value = stats.max_health;
             }
         }
     }
 }
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
 fn apply_upgrade(
-    upgrade: &UpgradeType,
-    applied_upgrades: &mut AppliedUpgrades,
-    player_query: &mut Query<(&mut Health, &mut PlayerExperience), With<Player>>,
-    weapon_query: &mut Query<&mut Weapon>,
+    upgrade: &StatUpgrade,
+    player_query: &mut Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
+    weapon_query: &mut Query<(&mut Weapon, &mut WeaponCooldown)>,
 ) {
-    let Ok((mut health, mut exp)) = player_query.single_mut() else {
+    let Ok((mut stats, mut exp, mut health)) = player_query.single_mut() else {
         return;
     };
-    match upgrade {
-        UpgradeType::IncreaseDamage(amount) => {
-            applied_upgrades.damage_multiplier += amount;
-            for mut weapon in weapon_query.iter_mut() {
-                weapon.damage *= 1.0 + amount;
-            }
-        }
-        UpgradeType::IncreaseFireRate(amount) => {
-            applied_upgrades.fire_rate_multiplier += amount;
-            for mut weapon in weapon_query.iter_mut() {
-                let current_duration = weapon.cooldown.duration().as_secs_f32();
-                weapon
-                    .cooldown
-                    .set_duration(std::time::Duration::from_secs_f32(
-                        current_duration / (1.0 + amount),
-                    ));
-            }
-        }
-        UpgradeType::IncreaseRange(amount) => {
-            applied_upgrades.range_multiplier += amount;
-            for mut weapon in weapon_query.iter_mut() {
-                weapon.range *= 1.0 + amount;
-            }
-        }
-        UpgradeType::IncreaseMaxHealth(amount) => {
-            health.max += amount;
-            health.value += amount; // Also heal
-        }
-        UpgradeType::IncreaseSpeed(amount) => {
-            applied_upgrades.speed_multiplier += amount;
-            // Speed will be applied in movement system
-        }
-        UpgradeType::HealPlayer(amount) => {
-            health.value = (health.value + amount).min(health.max);
-        }
-        UpgradeType::AddPiercing => {
-            applied_upgrades.has_piercing = true;
-        }
-        UpgradeType::AddMultishot(count) => {
-            applied_upgrades.multishot_count += count;
-        }
-        UpgradeType::AddExplosive => {
-            applied_upgrades.has_explosive = true;
-        }
+    println!(
+        "Applying upgrade from {:?} to {:?}, {:?}",
+        upgrade, stats, exp
+    );
+    exp.new_levels -= 1;
+
+    // Apply stat upgrade
+    stats.apply_upgrade(upgrade);
+
+    // Apply stat changes to existing weapons
+    for (mut weapon, mut cooldown) in weapon_query {
+        weapon.damage_multiplier = stats.damage_multiplier;
+        weapon.fire_rate_multiplier = stats.fire_rate_multiplier;
+        weapon.range_multiplier = stats.range_multiplier;
+        cooldown.timer = Timer::from_seconds(
+            weapon.base_cooldown / weapon.fire_rate_multiplier,
+            Repeating,
+        )
     }
-    exp.levels_gained_this_wave -= 1;
 }
