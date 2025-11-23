@@ -3,7 +3,6 @@ use crate::systems::player_animations::components::*;
 use crate::systems::player_animations::resources::AnimationAssets;
 use bevy::prelude::*;
 
-/// System to update the animation direction based on movement direction
 pub fn update_player_sprite(
     mut commands: Commands,
     animation_assets: Res<AnimationAssets>,
@@ -24,7 +23,6 @@ pub fn update_player_sprite(
     }
 }
 
-/// System to animate sprites by cycling through texture atlas indices
 pub fn animate_player_sprite(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
@@ -42,7 +40,7 @@ pub fn animate_player_sprite(
     }
 }
 
-/// Helper function to get animation indices for a given state and direction
+/// Helper functions
 pub fn get_animation_indices(state: &PlayerAction, direction: &Direction) -> AnimationIndices {
     // Find the sprite row
     let row = match direction {

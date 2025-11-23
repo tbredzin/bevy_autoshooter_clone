@@ -24,7 +24,6 @@ impl PlayerAnimationBundle {
     }
 }
 
-/// Animation timing component
 #[derive(Component)]
 pub struct AnimationTimer {
     pub timer: Timer,
@@ -38,21 +37,14 @@ impl Default for AnimationTimer {
     }
 }
 
-/// Holds the texture atlas indices for the current animation
 #[derive(Component, Debug)]
 pub struct AnimationIndices {
     pub first: usize,
     pub last: usize,
 }
 
-/// Marker component for the player's main sprite
 #[derive(Component, Default, Debug)]
 pub struct PlayerSprite {}
 
-/// Marker component for shadow sprites
 #[derive(Component)]
 pub struct ShadowSprite;
-
-/// Marker component for effect sprites (dust, death shadow)
-#[derive(Component)]
-pub struct EffectSprite;

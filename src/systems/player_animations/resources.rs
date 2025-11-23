@@ -1,7 +1,6 @@
 use crate::systems::player::components::PlayerAction;
 use bevy::prelude::*;
 
-/// Resource holding all animation sprite sheets
 #[derive(Resource)]
 pub struct AnimationAssets {
     pub idle_layout: Handle<TextureAtlasLayout>,
@@ -40,6 +39,11 @@ impl AnimationAssets {
 const IDLE_SPRITESHEET_PATH: &'static str = "spritesheet/player/Idle_spritesheet_8x6.png";
 const WALK_SPRITESHEET_PATH: &'static str = "spritesheet/player/walk_spritesheet_8x6.png";
 const DASH_SPRITESHEET_PATH: &'static str = "spritesheet/player/dash_spritesheet_8x6.png";
+const DASH_DUST_SPRITESHEET_PATH: &'static str = "spritesheet/player/dash_dust_spritesheet_8x6.png";
+const DEATH_SPRITESHEET_PATH: &'static str = "spritesheet/player/death_spritesheet_8x6.png";
+const SHADOW_SPRITE_PATH: &'static str = "spritesheet/player/shadow_sprite.png";
+const DEATH_SHADOW_SPRITESHEET_PATH: &'static str =
+    "spritesheet/player/death_shadow_spritesheet_8x6.png";
 
 /// System to load all animation assets at startup
 pub(crate) fn load_animation_assets(
@@ -83,15 +87,14 @@ pub(crate) fn load_animation_assets(
         dash_layout,
         dash_texture: asset_server.load(DASH_SPRITESHEET_PATH),
         dash_dust_layout,
-        dash_dust_texture: asset_server.load("spritesheet/player/dash_dust_spritesheet_8x6.png"),
+        dash_dust_texture: asset_server.load(DASH_DUST_SPRITESHEET_PATH),
 
         death_layout,
-        death_texture: asset_server.load("spritesheet/player/death_spritesheet_8x6.png"),
+        death_texture: asset_server.load(DEATH_SPRITESHEET_PATH),
         death_shadow_layout,
-        death_shadow_texture: asset_server
-            .load("spritesheet/player/death_shadow_spritesheet_8x6.png"),
+        death_shadow_texture: asset_server.load(DEATH_SHADOW_SPRITESHEET_PATH),
 
-        shadow_texture: asset_server.load("spritesheet/player/shadow_sprite.png"),
+        shadow_texture: asset_server.load(SHADOW_SPRITE_PATH),
     };
 
     commands.insert_resource(assets);
