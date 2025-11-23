@@ -1,7 +1,8 @@
-// src/systems/player_upgrades/ui.rs
+// src/systems/player_upgrades/renderer
 use crate::resources::HUDTextureAtlas;
 use crate::systems::player;
 use crate::systems::player::components::Player;
+use crate::systems::player_upgrades::components::NextWaveButton;
 use crate::systems::player_upgrades::components::*;
 use crate::systems::player_upgrades::resources::UpgradePool;
 use bevy::ecs::relationship::RelatedSpawnerCommands;

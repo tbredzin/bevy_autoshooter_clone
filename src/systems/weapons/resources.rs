@@ -2,9 +2,9 @@ use crate::components::Weapon;
 use crate::components::WeaponKind::{MachineGun, Pistol, Shotgun};
 use crate::resources::tiles_to_pixels;
 use bevy::asset::{Assets, Handle};
-use bevy::color::Color;
 use bevy::color::palettes::basic::{BLACK, RED};
 use bevy::color::palettes::css::PINK;
+use bevy::color::Color;
 use bevy::mesh::Mesh;
 use bevy::prelude::{Circle, ColorMaterial, Commands, Rectangle, ResMut, Resource};
 #[derive(Resource)]
@@ -37,13 +37,13 @@ pub fn init(
 ) {
     // Load bullet assets
     commands.insert_resource(GeometricMeshes {
-        circle_small: meshes.add(Circle::new(3.0)),
-        circle_medium: meshes.add(Circle::new(10.0)),
-        circle_large: meshes.add(Circle::new(25.0)),
-        square_large: meshes.add(Rectangle::new(25.0, 25.0)),
-        rectangle_small: meshes.add(Rectangle::new(25.0, 10.0)),
-        rectangle_medium: meshes.add(Rectangle::new(35.0, 10.0)),
-        rectangle_large: meshes.add(Rectangle::new(35.0, 20.0)),
+        circle_small: meshes.add(Circle::new(2.0)),
+        circle_medium: meshes.add(Circle::new(8.0)),
+        circle_large: meshes.add(Circle::new(18.0)),
+        square_large: meshes.add(Rectangle::new(18.0, 18.0)),
+        rectangle_small: meshes.add(Rectangle::new(18.0, 8.0)),
+        rectangle_medium: meshes.add(Rectangle::new(18.0, 8.0)),
+        rectangle_large: meshes.add(Rectangle::new(18.0, 18.0)),
     });
     commands.insert_resource(ColorMeshes {
         red: materials.add(Color::from(RED)),

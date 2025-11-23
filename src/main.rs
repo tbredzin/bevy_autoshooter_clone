@@ -4,13 +4,13 @@ mod resources;
 mod systems;
 
 use crate::resources::{WaveManager, WaveState, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::systems::player_animations::plugins::PlayerAnimationPlugin;
 use crate::systems::player_upgrades::resources::UpgradePool;
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
 use std::time::Duration;
-use systems::weapons::engine;
 use systems::*;
 
 fn main() {
@@ -43,6 +43,7 @@ fn main() {
                 frame_time_graph_config: Default::default(),
             },
         })
+        .add_plugins(PlayerAnimationPlugin)
         .insert_resource(WinitSettings {
             focused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
@@ -75,17 +76,17 @@ fn main() {
                     enemy::engine::update_spawned,
                     enemy::engine::update_move,
                     enemy::engine::check_if_dead,
-                    engine::update_weapon_positioning,
+                    weapons::systems::update_weapon_positioning,
                     combat::auto_shoot,
                     collision::check_bullet_enemy_collision,
                     collision::check_player_enemy_collision,
-                    engine::move_bullets,
+                    weapons::systems::move_bullets,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
-                    player_upgrades::ui::show_upgrade_ui,
-                    player_upgrades::engine::handle_upgrade_selection,
-                    player_upgrades::engine::handle_next_wave_button,
+                    player_upgrades::renderer::show_upgrade_ui,
+                    player_upgrades::systems::handle_upgrade_selection,
+                    player_upgrades::systems::handle_next_wave_button,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
             ),

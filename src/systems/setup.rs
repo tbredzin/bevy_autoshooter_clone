@@ -2,9 +2,9 @@ use crate::components::*;
 use crate::resources::{
     tiles_to_pixels, HUDTextureAtlas, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE,
 };
-use crate::systems::player::components::{Player, PlayerBundle};
-use crate::systems::player::experience::PlayerExperience;
-use crate::systems::player_upgrades::components::PlayerStats;
+use crate::systems::player::components::*;
+use crate::systems::player_animations::components::*;
+use crate::systems::player_animations::resources::AnimationAssets;
 use crate::systems::weapons::resources::WeaponsLibrary;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
@@ -64,8 +64,7 @@ pub fn spawn_background(mut commands: Commands, atlas: Res<TilesTextureAtlas>) {
 
 pub fn spawn_entities(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    animation_assets: Res<AnimationAssets>,
     weapons_library: Res<WeaponsLibrary>,
 ) -> Result {
     // Camera
@@ -94,18 +93,24 @@ pub fn spawn_entities(
         },
     ));
 
-    // Player
-    let mut player_entity = commands.spawn((
-        PlayerBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            player: Player {},
-            health: Health::default(),
-            xp: PlayerExperience::default(),
-            stats: PlayerStats::default(),
-        },
-        Mesh2d(meshes.add(Circle::new(20.0))),
-        MeshMaterial2d(materials.add(Color::srgb(0.2, 0.6, 1.0))),
-    ));
+    let position = Vec3::ZERO;
+    let player_entity = commands
+        .spawn((
+            PlayerBundle::default(),
+            PlayerAnimationBundle::new(
+                animation_assets.idle_texture.clone(),
+                animation_assets.idle_layout.clone(),
+                0,
+                7,
+            ),
+            Transform::from_translation(position).with_scale(Vec3::splat(2.0)),
+        ))
+        .with_child((
+            Sprite::from_image(animation_assets.shadow_texture.clone()),
+            Transform::from_translation(position - Vec3::new(0.0, 2.0, -1.0)), // Slightly below player
+            ShadowSprite,
+        ))
+        .id();
 
     // Give all weapons available to player
     let total_weapons = weapons_library.weapons.len();
@@ -114,7 +119,7 @@ pub fn spawn_entities(
 
     for (index, weapon) in weapons_library.weapons.iter().enumerate() {
         let angle = consts::TAU * (index as f32) / (total_weapons as f32);
-        player_entity.with_child((
+        commands.entity(player_entity).with_child((
             weapon.clone(),
             WeaponCooldown {
                 timer: Timer::from_seconds(weapon.base_cooldown, Repeating),
