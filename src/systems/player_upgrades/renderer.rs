@@ -1,7 +1,8 @@
 // src/systems/player_upgrades/renderer
 use crate::resources::HUDTextureAtlas;
-use crate::systems::player;
+use crate::systems::input::gamepad::{ActiveGamepad, GamepadAsset};
 use crate::systems::player::components::Player;
+use crate::systems::player::experience::PlayerExperience;
 use crate::systems::player_upgrades::components::NextWaveButton;
 use crate::systems::player_upgrades::components::*;
 use crate::systems::player_upgrades::resources::UpgradePool;
@@ -13,14 +14,17 @@ pub fn show_upgrade_ui(
     mut commands: Commands,
     upgrade_pool: Res<UpgradePool>,
     ui_query: Query<Entity, With<UpgradeUI>>,
-    player_query: Query<&player::experience::PlayerExperience, With<Player>>,
+    player_query: Query<&PlayerExperience, With<Player>>,
     sprites: Res<HUDTextureAtlas>,
+    gamepad_asset: Res<GamepadAsset>,
+    active_gamepad: Option<Res<ActiveGamepad>>,
 ) {
     // Only spawn UI once when wave ends
     if ui_query.is_empty() {
         let Ok(player_xp) = player_query.single() else {
             return;
         };
+        let has_gamepad = active_gamepad.is_some();
         commands
             .spawn((
                 UpgradeUI,
@@ -37,9 +41,15 @@ pub fn show_upgrade_ui(
             .with_children(|parent| {
                 println!("{:?}", player_xp);
                 if player_xp.new_levels == 0 {
-                    show_no_upgrade(parent)
+                    show_no_upgrade(parent, has_gamepad)
                 } else {
-                    show_upgrades(upgrade_pool.generate_upgrades(4), parent, &sprites)
+                    show_upgrades(
+                        upgrade_pool.generate_upgrades(4),
+                        parent,
+                        &sprites,
+                        &gamepad_asset,
+                        has_gamepad,
+                    )
                 };
             });
     }
@@ -51,6 +61,8 @@ fn show_upgrades(
     upgrades: Vec<StatUpgrade>,
     parent: &mut RelatedSpawnerCommands<ChildOf>,
     sprites: &Res<HUDTextureAtlas>,
+    gamepad_asset: &Res<GamepadAsset>,
+    has_gamepad: bool,
 ) {
     // Title
     println!("Upgrades: {:?}", upgrades);
@@ -67,6 +79,22 @@ fn show_upgrades(
         },
     ));
 
+    // Gamepad hint
+    if has_gamepad {
+        parent.spawn((
+            Text::new("🎮 A/B/X/Y to select • START to skip"),
+            TextFont {
+                font_size: 20.0,
+                ..default()
+            },
+            TextColor(Color::srgb(0.7, 0.7, 0.7)),
+            Node {
+                margin: UiRect::bottom(Val::Px(20.0)),
+                ..default()
+            },
+        ));
+    }
+
     // Cards container
     parent
         .spawn(Node {
@@ -77,13 +105,13 @@ fn show_upgrades(
             ..default()
         })
         .with_children(|parent| {
-            for upgrade in upgrades {
-                spawn_upgrade_card(parent, upgrade, sprites);
+            for (index, upgrade) in upgrades.into_iter().enumerate() {
+                spawn_upgrade_card(parent, upgrade, sprites, gamepad_asset, index, has_gamepad);
             }
         });
 }
 
-fn show_no_upgrade(parent: &mut RelatedSpawnerCommands<ChildOf>) {
+fn show_no_upgrade(parent: &mut RelatedSpawnerCommands<ChildOf>, has_gamepad: bool) {
     // No upgrades available, show message and button together
     parent.spawn((
         Text::new("No upgrades available this wave"),
@@ -115,8 +143,13 @@ fn show_no_upgrade(parent: &mut RelatedSpawnerCommands<ChildOf>) {
             BorderColor::all(Color::srgb(0.3, 0.9, 0.4)),
         ))
         .with_children(|parent| {
+            let button_text = if has_gamepad {
+                "PRESS START"
+            } else {
+                "START NEXT WAVE"
+            };
             parent.spawn((
-                Text::new("START NEXT WAVE"),
+                Text::new(button_text),
                 TextFont {
                     font_size: 28.0,
                     ..default()
@@ -130,9 +163,16 @@ fn spawn_upgrade_card(
     parent: &mut RelatedSpawnerCommands<ChildOf>,
     upgrade: StatUpgrade,
     sprites: &Res<HUDTextureAtlas>,
+    gamepad_asset: &Res<GamepadAsset>,
+    index: usize,
+    has_gamepad: bool,
 ) {
     let (texture_index, description, icon_color) = upgrade.get_display_info();
     let border_color = upgrade.rarity.get_color();
+
+    // Gamepad button labels
+    let gamepad_button_index = 71 + (35 * index);
+
     parent
         .spawn((
             UpgradeCard {
@@ -225,31 +265,19 @@ fn spawn_upgrade_card(
                 },
             ));
 
-            // Select button
-            parent
-                .spawn((
-                    UpgradeCardButton,
-                    Button,
-                    Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Px(50.0),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        border: UiRect::all(Val::Px(2.0)),
-                        ..default()
-                    },
-                    BackgroundColor(Color::srgb(0.3, 0.6, 0.3)),
-                    BorderColor::all(Color::srgb(0.4, 0.8, 0.4)),
-                ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        Text::new("SELECT"),
-                        TextFont {
-                            font_size: 24.0,
-                            ..default()
-                        },
-                        TextColor(Color::WHITE),
-                    ));
-                });
+            parent.spawn((
+                UpgradeCardButton,
+                Button,
+                ImageNode::from_atlas_image(
+                    gamepad_asset.asset.clone(),
+                    TextureAtlas::from(gamepad_asset.layout.clone())
+                        .with_index(gamepad_button_index),
+                ),
+                Node {
+                    width: Val::Px(64.0),
+                    height: Val::Px(64.0),
+                    ..default()
+                },
+            ));
         });
 }

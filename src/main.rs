@@ -57,13 +57,18 @@ fn main() {
                 weapons::resources::init,
                 setup::spawn_entities,
                 setup::spawn_background,
+                input::gamepad::load_animation_assets,
             )
                 .chain(),
         )
         // Logic
         .add_systems(
             PreUpdate,
-            (game::out_of_bounds_system, game::despawn_marked_entities),
+            (
+                game::out_of_bounds_system,
+                game::despawn_marked_entities,
+                input::gamepad::handle_gamepad_connection,
+            ),
         )
         .add_systems(
             Update,
@@ -84,9 +89,10 @@ fn main() {
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
-                    player_upgrades::renderer::show_upgrade_ui,
                     player_upgrades::systems::handle_upgrade_selection,
+                    player_upgrades::systems::handle_gamepad_upgrade_selection,
                     player_upgrades::systems::handle_next_wave_button,
+                    player_upgrades::renderer::show_upgrade_ui,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
             ),

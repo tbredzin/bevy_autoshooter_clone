@@ -1,5 +1,6 @@
 use crate::components::{HUDLevelUp, HUDLevelUps, HUDText, Health};
 use crate::resources::{HUDTextureAtlas, WaveManager};
+use crate::systems::input::gamepad::ActiveGamepad;
 use crate::systems::player::components::Player;
 use crate::systems::player::experience::PlayerExperience;
 use crate::systems::player_upgrades::components::{PlayerStats, StatKind};
@@ -115,12 +116,24 @@ pub fn show_stats_display(
     stats_query: Query<Entity, With<StatsDisplayUI>>,
     keyboard: Res<ButtonInput<KeyCode>>,
     sprites: Res<HUDTextureAtlas>,
+    active_gamepad: Option<Res<ActiveGamepad>>,
+    gamepads: Query<&Gamepad>,
 ) -> Result {
     let tab_pressed = keyboard.pressed(KeyCode::Tab);
     let ui_exists = !stats_query.is_empty();
 
+    let select_pressed = if let Some(gamepad) = active_gamepad.as_ref() {
+        if let Ok(gamepad) = gamepads.get(gamepad.0) {
+            gamepad.pressed(GamepadButton::Select)
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+
     // Remove UI when Tab is released
-    if !tab_pressed && ui_exists {
+    if !tab_pressed && ui_exists && !select_pressed {
         for entity in &stats_query {
             commands.get_entity(entity)?.despawn();
         }
@@ -128,7 +141,7 @@ pub fn show_stats_display(
     }
 
     // Don't spawn if already exists or Tab not pressed
-    if ui_exists || !tab_pressed {
+    if ui_exists || (!tab_pressed && !select_pressed) {
         return Ok(());
     }
 

@@ -11,7 +11,7 @@ pub struct UpgradeCardButton;
 #[derive(Component)]
 pub struct NextWaveButton;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct UpgradeCard {
     pub upgrade: StatUpgrade,
 }
