@@ -87,7 +87,6 @@ pub fn show_level_ups(
     let Ok((parent, level_ups)) = level_ups_query.single() else {
         return;
     };
-
     let level_ups_count = level_ups.map(|ups| ups.len()).unwrap_or(0) as u32;
     if level_ups_count < player_xp.new_levels {
         commands.entity(parent).with_child((
@@ -134,7 +133,6 @@ pub fn show_stats_display(
     if ui_exists || (!tab_pressed && !select_pressed) {
         return Ok(());
     }
-
     commands
         .spawn((
             StatsDisplayUI,

@@ -4,6 +4,7 @@ mod resources;
 mod systems;
 
 use crate::resources::{WaveManager, WaveState, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::systems::gamepad_debug::GamepadDisplayEnabled;
 use crate::systems::player_animations::plugins::PlayerAnimationPlugin;
 use crate::systems::player_upgrades::resources::UpgradePool;
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
@@ -51,6 +52,7 @@ fn main() {
         })
         .init_resource::<WaveManager>()
         .init_resource::<UpgradePool>()
+        .init_resource::<GamepadDisplayEnabled>()
         .add_systems(
             Startup,
             (
@@ -58,6 +60,7 @@ fn main() {
                 weapons::resources::init,
                 setup::spawn_entities,
                 setup::spawn_background,
+                gamepad_debug::setup_gamepad_display,
             )
                 .chain(),
         )
@@ -82,6 +85,9 @@ fn main() {
                     collision::check_bullet_enemy_collision,
                     collision::check_player_enemy_collision,
                     weapons::systems::move_bullets,
+                    gamepad_debug::toggle_gamepad_display, // Add this
+                    gamepad_debug::display_button_presses, // Add this
+                    gamepad_debug::hide_button_released,   // Add this
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
@@ -100,8 +106,7 @@ fn main() {
                 hud::update_ui,
                 hud::show_stats_display,
                 hud::update_stats_display,
-                hud::show_level_ups
-                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
+                hud::show_level_ups.run_if(run_once), //|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
                     hud::clear_level_ups,
                     player_upgrades::renderer::show_upgrade_ui,

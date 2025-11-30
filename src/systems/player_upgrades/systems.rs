@@ -160,10 +160,10 @@ fn start_next_wave(
 
 fn card_button_is_pressed(gamepad: &Gamepad, index: &CardIndex) -> bool {
     match index.0 {
-        0 => gamepad.pressed(GamepadButton::South),
-        1 => gamepad.pressed(GamepadButton::East),
-        2 => gamepad.pressed(GamepadButton::West),
-        3 => gamepad.pressed(GamepadButton::North),
+        0 => gamepad.pressed(GamepadButton::West),
+        1 => gamepad.pressed(GamepadButton::South),
+        2 => gamepad.pressed(GamepadButton::North),
+        3 => gamepad.pressed(GamepadButton::East),
         _ => false,
     }
 }

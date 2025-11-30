@@ -1,8 +1,10 @@
 pub mod camera;
 pub mod collision;
 pub mod combat;
+pub mod debug;
 pub mod enemy;
 pub mod game;
+pub mod gamepad_debug;
 pub mod hud;
 pub mod player;
 pub mod player_animations;

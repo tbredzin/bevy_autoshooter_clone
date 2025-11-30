@@ -1,6 +1,6 @@
 use crate::components::*;
-use crate::resources::{
-    HUDTextureAtlas, TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels,
+pub(crate) use crate::resources::{
+    tiles_to_pixels, GamepadAsset, HUDTextureAtlas, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE,
 };
 use crate::systems::player::components::*;
 use crate::systems::player_animations::components::*;
@@ -32,6 +32,16 @@ pub fn init_resources(
             UVec2::splat(16u32), // tile size (width, height)
             16,                  // columns
             6,                   // rows
+            None,                // no padding
+            None,                // no offset
+        )),
+    });
+    commands.insert_resource(GamepadAsset {
+        texture: asset_server.load("spritesheet/gdb-xbox-2.png"),
+        layout: texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
+            UVec2::splat(16u32), // tile size (width, height)
+            35,                  // columns
+            40,                  // rows
             None,                // no padding
             None,                // no offset
         )),

@@ -1,5 +1,5 @@
 // src/systems/player_upgrades/renderer
-use crate::resources::{HUDTextureAtlas, NB_UPDATES_PER_LEVEL};
+use crate::resources::{GamepadAsset, HUDTextureAtlas, NB_UPDATES_PER_LEVEL};
 use crate::systems::player;
 use crate::systems::player::components::Player;
 use crate::systems::player_upgrades::components::NextWaveButton;
@@ -20,6 +20,7 @@ pub fn show_upgrade_ui(
     ui_query: Query<Entity, With<UpgradeUI>>,
     player_query: Query<&player::experience::PlayerExperience, With<Player>>,
     sprites: Res<HUDTextureAtlas>,
+    gamepad_asset: Res<GamepadAsset>,
     active_gamepad: Option<Single<&Gamepad>>,
 ) {
     // Only spawn UI once when wave ends
@@ -50,6 +51,7 @@ pub fn show_upgrade_ui(
                         upgrade_pool.generate_upgrades(NB_UPDATES_PER_LEVEL),
                         parent,
                         &sprites,
+                        &gamepad_asset,
                         has_gamepad,
                     )
                 };
@@ -63,6 +65,7 @@ fn show_upgrades(
     upgrades: Vec<StatUpgrade>,
     parent: &mut RelatedSpawnerCommands<ChildOf>,
     sprites: &Res<HUDTextureAtlas>,
+    gamepad_asset: &Res<GamepadAsset>,
     has_gamepad: bool,
 ) {
     // Title
@@ -107,7 +110,7 @@ fn show_upgrades(
         })
         .with_children(|parent| {
             for (index, upgrade) in upgrades.into_iter().enumerate() {
-                spawn_upgrade_card(parent, upgrade, sprites, index, has_gamepad);
+                spawn_upgrade_card(parent, upgrade, sprites, gamepad_asset, index);
             }
         });
 }
@@ -115,7 +118,7 @@ fn show_upgrades(
 fn show_no_upgrade(parent: &mut RelatedSpawnerCommands<ChildOf>, has_gamepad: bool) {
     // No upgrades available, show message and button together
     parent.spawn((
-        Text::new("No upgrades available this wave"),
+        Text::new("No more upgrades available this wave"),
         TextFont {
             font_size: 36.0,
             ..default()
@@ -177,18 +180,12 @@ fn spawn_upgrade_card(
     parent: &mut RelatedSpawnerCommands<ChildOf>,
     upgrade: StatUpgrade,
     sprites: &Res<HUDTextureAtlas>,
+    gamepad_asset: &Res<GamepadAsset>,
     index: usize,
-    has_gamepad: bool,
 ) {
     let (texture_index, description, icon_color) = upgrade.get_display_info();
     let border_color = upgrade.rarity.get_color();
-    let gamepad_label = match index {
-        0 => "A",
-        1 => "B",
-        2 => "X",
-        3 => "Y",
-        _ => "",
-    };
+    let gamepad_button_index = 71 + (35 * index);
 
     parent.spawn((
         UpgradeCard::from(upgrade.clone()),
@@ -309,16 +306,15 @@ fn spawn_upgrade_card(
                         BackgroundColor(Color::srgb(0.3, 0.6, 0.3)),
                         BorderColor::all(Color::srgb(0.4, 0.8, 0.4)),
                         children![(
-                            if has_gamepad {
-                                Text::new(format!("Press {}", gamepad_label))
-                            } else {
-                                Text::new("SELECT")
-                            },
-                            TextFont {
-                                font_size: 24.0,
+                            ImageNode::from_atlas_image(
+                                gamepad_asset.texture.clone(),
+                                TextureAtlas::from(gamepad_asset.layout.clone())
+                                    .with_index(gamepad_button_index),
+                            ),
+                            Node {
+                                width: Val::Px(32.0),
                                 ..default()
-                            },
-                            TextColor(Color::WHITE),
+                            }
                         )]
                     )
                 ]

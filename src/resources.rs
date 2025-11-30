@@ -14,11 +14,12 @@ pub const fn tiles_to_pixels(tiles: f32) -> f32 {
 pub const ENEMY_SPEED: f32 = 80.0;
 pub const ENEMY_HEALTH: f32 = 4.0;
 pub const BULLET_SPEED: f32 = 500.0;
-pub const WAVE_DURATION: f32 = 8.0;
+pub const WAVE_DURATION: f32 = 10008.0;
 pub const SPAWN_RATE: f32 = 0.2;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
 pub const ENEMY_BASE_XP: u32 = 2;
 pub const NEXT_LEVEL_RATIO_PERCENT: u32 = 10;
+pub const NB_UPDATES_PER_LEVEL: usize = 4;
 
 pub const GAME_AREA: Rect = Rect {
     min: Vec2 {
@@ -68,4 +69,34 @@ pub struct HUDTextureAtlas {
     pub layout: Handle<TextureAtlasLayout>,
 }
 
-pub const NB_UPDATES_PER_LEVEL: usize = 4;
+#[derive(Resource)]
+pub struct GamepadAsset {
+    pub texture: Handle<Image>,
+    pub layout: Handle<TextureAtlasLayout>,
+}
+const SPRITESHEET_WIDTH: u32 = 35;
+const SPRITESHEET_BEGIN: u32 = 71;
+impl GamepadAsset {
+    pub fn get_button_index(&self, button: &GamepadButton) -> usize {
+        return match button {
+            GamepadButton::West => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 0),
+            GamepadButton::South => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 1),
+            GamepadButton::North => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 2),
+            GamepadButton::East => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 3),
+            GamepadButton::LeftTrigger => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 3) + 20,
+            GamepadButton::LeftTrigger2 => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 1) + 20,
+            GamepadButton::RightTrigger => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 4) + 20,
+            GamepadButton::RightTrigger2 => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 2) + 20,
+            GamepadButton::Select => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 4),
+            GamepadButton::Start => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 5),
+            GamepadButton::Mode => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 5) + 20,
+            GamepadButton::LeftThumb => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 0) + 12,
+            GamepadButton::RightThumb => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 0) + 16,
+            GamepadButton::DPadUp => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 3) + 7,
+            GamepadButton::DPadDown => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 3) + 8,
+            GamepadButton::DPadLeft => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 4) + 7,
+            GamepadButton::DPadRight => SPRITESHEET_BEGIN + (SPRITESHEET_WIDTH * 4) + 8,
+            _ => 0,
+        } as usize;
+    }
+}
