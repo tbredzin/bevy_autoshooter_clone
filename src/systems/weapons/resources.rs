@@ -2,9 +2,9 @@ use crate::components::Weapon;
 use crate::components::WeaponKind::{MachineGun, Pistol, Shotgun};
 use crate::resources::tiles_to_pixels;
 use bevy::asset::{Assets, Handle};
+use bevy::color::Color;
 use bevy::color::palettes::basic::{BLACK, RED};
 use bevy::color::palettes::css::PINK;
-use bevy::color::Color;
 use bevy::mesh::Mesh;
 use bevy::prelude::{Circle, ColorMaterial, Commands, Rectangle, ResMut, Resource};
 #[derive(Resource)]

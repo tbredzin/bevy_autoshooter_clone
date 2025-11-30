@@ -17,7 +17,7 @@ pub const BULLET_SPEED: f32 = 500.0;
 pub const WAVE_DURATION: f32 = 8.0;
 pub const SPAWN_RATE: f32 = 0.2;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
-pub const ENEMY_BASE_XP: u32 = 10;
+pub const ENEMY_BASE_XP: u32 = 2;
 pub const NEXT_LEVEL_RATIO_PERCENT: u32 = 10;
 
 pub const GAME_AREA: Rect = Rect {
@@ -67,3 +67,5 @@ pub struct HUDTextureAtlas {
     pub texture: Handle<Image>,
     pub layout: Handle<TextureAtlasLayout>,
 }
+
+pub const NB_UPDATES_PER_LEVEL: usize = 4;

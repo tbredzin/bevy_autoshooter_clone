@@ -11,6 +11,7 @@ use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
 use std::time::Duration;
+use systems::player_upgrades;
 use systems::*;
 
 fn main() {
@@ -57,18 +58,13 @@ fn main() {
                 weapons::resources::init,
                 setup::spawn_entities,
                 setup::spawn_background,
-                input::gamepad::load_animation_assets,
             )
                 .chain(),
         )
         // Logic
         .add_systems(
             PreUpdate,
-            (
-                game::out_of_bounds_system,
-                game::despawn_marked_entities,
-                input::gamepad::handle_gamepad_connection,
-            ),
+            (game::out_of_bounds_system, game::despawn_marked_entities),
         )
         .add_systems(
             Update,
@@ -89,10 +85,9 @@ fn main() {
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
-                    player_upgrades::systems::handle_upgrade_selection,
-                    player_upgrades::systems::handle_gamepad_upgrade_selection,
                     player_upgrades::systems::handle_next_wave_button,
-                    player_upgrades::renderer::show_upgrade_ui,
+                    player_upgrades::systems::handle_gamepad_update_selection,
+                    player_upgrades::systems::apply_upgrade,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
             ),
@@ -107,7 +102,12 @@ fn main() {
                 hud::update_stats_display,
                 hud::show_level_ups
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
-                hud::clear_level_ups
+                (
+                    hud::clear_level_ups,
+                    player_upgrades::renderer::show_upgrade_ui,
+                    player_upgrades::renderer::hide_upgrade_ui,
+                    player_upgrades::renderer::animate_card_selection,
+                )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
                 camera::camera_follow_player,
             ),

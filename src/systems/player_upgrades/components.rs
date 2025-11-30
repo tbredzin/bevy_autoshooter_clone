@@ -1,6 +1,7 @@
 use crate::systems::hud::DisplayStatKind;
+use crate::systems::player_upgrades::components::UpgradeCardSelectionState::Unselected;
 use bevy::color::Color;
-use bevy::prelude::Component;
+use bevy::prelude::{Component, Timer};
 
 #[derive(Component)]
 pub struct UpgradeUI;
@@ -14,6 +15,24 @@ pub struct NextWaveButton;
 #[derive(Component, Debug)]
 pub struct UpgradeCard {
     pub upgrade: StatUpgrade,
+    pub state: UpgradeCardSelectionState,
+}
+impl UpgradeCard {
+    pub fn from(upgrade: StatUpgrade) -> Self {
+        Self {
+            upgrade,
+            state: Unselected,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum UpgradeCardSelectionState {
+    Unselected,
+    Holding,
+    Selected,
+    ToApply,
+    Applied,
 }
 
 /// Enum representing all player stats that can be upgraded
@@ -135,6 +154,31 @@ impl UpgradeRarity {
             UpgradeRarity::Uncommon => 30.0,
             UpgradeRarity::Rare => 9.0,
             UpgradeRarity::Legendary => 1.0,
+        }
+    }
+}
+
+/// How long the button must be held to confirm selection (in seconds)
+pub const HOLD_DURATION: f32 = 1.0;
+pub const SELECTION_FREQUENCY: f32 = 4.0;
+
+/// Component to mark which card corresponds to which gamepad button
+#[derive(Component)]
+pub struct CardIndex(pub usize);
+
+/// Component for the progress bar fill overlay
+#[derive(Component)]
+pub struct CardProgressFill;
+
+#[derive(Component, Debug)]
+pub struct UpgradeCardAnimation {
+    pub timer: Timer,
+}
+
+impl Default for UpgradeCardAnimation {
+    fn default() -> Self {
+        Self {
+            timer: Timer::default(),
         }
     }
 }

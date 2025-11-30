@@ -1,6 +1,6 @@
 use crate::components::*;
 use crate::resources::{
-    tiles_to_pixels, HUDTextureAtlas, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE,
+    HUDTextureAtlas, TILE_SIZE, TILES_X, TILES_Y, TilesTextureAtlas, tiles_to_pixels,
 };
 use crate::systems::player::components::*;
 use crate::systems::player_animations::components::*;

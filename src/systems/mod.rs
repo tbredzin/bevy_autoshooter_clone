@@ -4,7 +4,6 @@ pub mod combat;
 pub mod enemy;
 pub mod game;
 pub mod hud;
-pub mod input;
 pub mod player;
 pub mod player_animations;
 pub mod player_upgrades;

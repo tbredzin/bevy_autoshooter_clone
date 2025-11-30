@@ -1,15 +1,14 @@
 use crate::resources::GAME_AREA;
-use crate::systems::input::gamepad::{get_gamepad_movement, ActiveGamepad};
 use crate::systems::player::components::{Direction, Player, PlayerAction};
 use crate::systems::player::resources::PLAYER_SPEED;
 use crate::systems::player_upgrades::components::PlayerStats;
 use bevy::input::ButtonInput;
 use bevy::math::Vec2;
-use bevy::prelude::{Gamepad, KeyCode, Query, Res, Time, Transform, With};
+use bevy::prelude::{Gamepad, KeyCode, Query, Res, Single, Time, Transform, With};
 
 pub fn update_position(
     keyboard: Res<ButtonInput<KeyCode>>,
-    active_gamepad: Option<Res<ActiveGamepad>>,
+    active_gamepad: Option<Single<&Gamepad>>,
     gamepads: Query<&Gamepad>,
     mut player_query: Query<
         (
@@ -43,13 +42,11 @@ pub fn update_position(
     }
 
     // Gamepad input (if connected)
-    if let Some(active_gamepad) = active_gamepad.as_ref() {
-        if let Ok(gamepad) = gamepads.get(active_gamepad.0) {
-            let gamepad_input = get_gamepad_movement(gamepad);
+    if let Some(gamepad) = active_gamepad.as_ref() {
+        let gamepad_input = get_gamepad_movement(gamepad);
 
-            // Add gamepad input to keyboard input (allows both to work simultaneously)
-            direction += gamepad_input;
-        }
+        // Add gamepad input to keyboard input (allows both to work simultaneously)
+        direction += gamepad_input;
     }
 
     // Update direction enum for animation system
@@ -95,4 +92,18 @@ pub fn get_direction(translation: &mut Vec2) -> Option<Direction> {
         (x, y) if y < -0.5 && x < -0.5 => Some(Direction::SOUTHWEST),
         _ => None,
     }
+}
+
+pub fn get_gamepad_movement(gamepad: &Gamepad) -> Vec2 {
+    let left_stick = gamepad.left_stick();
+    const DEAD_ZONE: f32 = 0.15;
+    if left_stick.length() > DEAD_ZONE {
+        return left_stick;
+    }
+
+    let dpad = gamepad.dpad();
+    if dpad.length() > 0.0 {
+        return dpad.normalize_or_zero();
+    }
+    Vec2::ZERO
 }
