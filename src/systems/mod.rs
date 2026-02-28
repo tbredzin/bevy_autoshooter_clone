@@ -4,7 +4,6 @@ pub mod combat;
 pub mod debug;
 pub mod enemy;
 pub mod game;
-pub mod gamepad_debug;
 pub mod hud;
 pub mod input;
 pub mod player;

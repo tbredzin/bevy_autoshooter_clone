@@ -1,15 +1,13 @@
 use crate::resources::GAME_AREA;
+use crate::systems::input::resources::ActionState;
 use crate::systems::player::components::{Direction, Player, PlayerAction};
 use crate::systems::player::resources::PLAYER_SPEED;
 use crate::systems::player_upgrades::components::PlayerStats;
-use bevy::input::ButtonInput;
 use bevy::math::Vec2;
-use bevy::prelude::{Gamepad, KeyCode, Query, Res, Single, Time, Transform, With};
+use bevy::prelude::{Query, Res, Time, Transform, With};
 
 pub fn update_position(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    active_gamepad: Option<Single<&Gamepad>>,
-    gamepads: Query<&Gamepad>,
+    actions: Res<ActionState>,
     mut player_query: Query<
         (
             &mut Transform,
@@ -26,31 +24,10 @@ pub fn update_position(
         return;
     };
 
-    let mut direction = Vec2::ZERO;
-
-    if keyboard.pressed(KeyCode::KeyW) || keyboard.pressed(KeyCode::ArrowUp) {
-        direction.y += 1.0;
-    }
-    if keyboard.pressed(KeyCode::KeyS) || keyboard.pressed(KeyCode::ArrowDown) {
-        direction.y -= 1.0;
-    }
-    if keyboard.pressed(KeyCode::KeyA) || keyboard.pressed(KeyCode::ArrowLeft) {
-        direction.x -= 1.0;
-    }
-    if keyboard.pressed(KeyCode::KeyD) || keyboard.pressed(KeyCode::ArrowRight) {
-        direction.x += 1.0;
-    }
-
-    // Gamepad input (if connected)
-    if let Some(gamepad) = active_gamepad.as_ref() {
-        let gamepad_input = get_gamepad_movement(gamepad);
-
-        // Add gamepad input to keyboard input (allows both to work simultaneously)
-        direction += gamepad_input;
-    }
+    let direction = actions.movement;
 
     // Update direction enum for animation system
-    if let Some(new_direction) = get_direction(&mut direction) {
+    if let Some(new_direction) = get_direction(direction) {
         if *current_direction != new_direction {
             *current_direction = new_direction;
         }
@@ -58,7 +35,6 @@ pub fn update_position(
 
     // Apply movement
     if direction != Vec2::ZERO {
-        direction = direction.normalize_or_zero();
         transform.translation +=
             direction.extend(0.0) * PLAYER_SPEED * stats.speed_multiplier * time.delta_secs();
         if *action != PlayerAction::WALKING {
@@ -79,7 +55,7 @@ pub fn update_position(
         .clamp(GAME_AREA.min.y, GAME_AREA.max.y);
 }
 
-pub fn get_direction(translation: &mut Vec2) -> Option<Direction> {
+pub fn get_direction(translation: Vec2) -> Option<Direction> {
     match (translation.x, translation.y) {
         (x, y) if x == 0.0 && y == 0.0 => None,
         (x, y) if y < -0.5 && x.abs() < 0.5 => Some(Direction::SOUTH),
@@ -92,18 +68,4 @@ pub fn get_direction(translation: &mut Vec2) -> Option<Direction> {
         (x, y) if y < -0.5 && x < -0.5 => Some(Direction::SOUTHWEST),
         _ => None,
     }
-}
-
-pub fn get_gamepad_movement(gamepad: &Gamepad) -> Vec2 {
-    let left_stick = gamepad.left_stick();
-    const DEAD_ZONE: f32 = 0.15;
-    if left_stick.length() > DEAD_ZONE {
-        return left_stick;
-    }
-
-    let dpad = gamepad.dpad();
-    if dpad.length() > 0.0 {
-        return dpad.normalize_or_zero();
-    }
-    Vec2::ZERO
 }

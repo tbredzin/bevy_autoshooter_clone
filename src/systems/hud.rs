@@ -1,5 +1,6 @@
 use crate::components::{HUDLevelUp, HUDLevelUps, HUDText, Health};
 use crate::resources::{HUDTextureAtlas, WaveManager};
+use crate::systems::input::resources::ActionState;
 use crate::systems::player::components::Player;
 use crate::systems::player::experience::PlayerExperience;
 use crate::systems::player_upgrades::components::{PlayerStats, StatKind};
@@ -18,13 +19,14 @@ const ICON_RANGE: usize = 18;
 const ICON_HEALTH: usize = 49;
 const ICON_SPEED: usize = 29;
 const ICON_WAVE: usize = 59;
+
 #[derive(Component)]
 pub enum DisplayStatKind {
     Level,
     Experience,
     Wave,
     PlayerStat(StatKind),
-    Health, // Special case: current/max health display
+    Health,
 }
 
 impl From<StatKind> for DisplayStatKind {
@@ -108,29 +110,24 @@ pub fn clear_level_ups(mut commands: Commands, level_ups_query: Query<Entity, Wi
     }
 }
 
-/// Shows detailed character statistics when Tab is held
+/// Shows detailed character statistics
 pub fn show_stats_display(
     mut commands: Commands,
     stats_query: Query<Entity, With<StatsDisplayUI>>,
-    keyboard: Res<ButtonInput<KeyCode>>,
+    actions: Res<ActionState>,
     sprites: Res<HUDTextureAtlas>,
-    gamepad: Single<&Gamepad>,
 ) -> Result {
-    let tab_pressed = keyboard.pressed(KeyCode::Tab);
     let ui_exists = !stats_query.is_empty();
 
-    let select_pressed = gamepad.pressed(GamepadButton::Select);
-
-    // Remove UI when Tab is released
-    if !tab_pressed && ui_exists && !select_pressed {
+    // Remove UI when show stats is toggled off
+    if !actions.toggle_show_stats && ui_exists {
         for entity in &stats_query {
             commands.get_entity(entity)?.despawn();
         }
         return Ok(());
     }
 
-    // Don't spawn if already exists or Tab not pressed
-    if ui_exists || (!tab_pressed && !select_pressed) {
+    if ui_exists || !actions.toggle_show_stats {
         return Ok(());
     }
     commands

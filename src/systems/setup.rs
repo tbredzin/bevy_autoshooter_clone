@@ -1,4 +1,5 @@
 use crate::components::*;
+use crate::resources::KeyboardAsset;
 pub(crate) use crate::resources::{
     tiles_to_pixels, GamepadAsset, HUDTextureAtlas, TilesTextureAtlas, TILES_X, TILES_Y, TILE_SIZE,
 };
@@ -46,6 +47,7 @@ pub fn init_resources(
             None,                // no offset
         )),
     });
+    commands.insert_resource(KeyboardAsset {})
 }
 
 pub fn spawn_background(mut commands: Commands, atlas: Res<TilesTextureAtlas>) {
