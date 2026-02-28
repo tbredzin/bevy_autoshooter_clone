@@ -1,5 +1,6 @@
 // src/systems/player_upgrades/renderer
 use crate::resources::{GamepadAsset, HUDTextureAtlas, NB_UPDATES_PER_LEVEL};
+use crate::systems::input::resources::ActionState;
 use crate::systems::player;
 use crate::systems::player::components::Player;
 use crate::systems::player_upgrades::components::NextWaveButton;
@@ -164,9 +165,21 @@ fn show_no_upgrade(parent: &mut RelatedSpawnerCommands<ChildOf>, has_gamepad: bo
 }
 pub fn hide_upgrade_ui(
     mut commands: Commands,
+    actions: Res<ActionState>,
     cards: Query<&UpgradeCard>,
     ui_query: Query<Entity, With<UpgradeUI>>,
+    next_wave_menu_query: Query<Entity, With<NextWaveButton>>,
 ) {
+    if !next_wave_menu_query.is_empty() && actions.start_next_wave {
+        for entity in next_wave_menu_query {
+            commands.entity(entity).despawn();
+        }
+        for entity in ui_query {
+            commands.entity(entity).despawn();
+        }
+        return;
+    }
+
     for selection in cards {
         if selection.state == Applied {
             for ui in ui_query {

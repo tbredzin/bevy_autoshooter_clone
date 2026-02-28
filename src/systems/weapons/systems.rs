@@ -1,9 +1,9 @@
-use crate::components::{Bullet, Enemy, Weapon, WeaponArea};
+use crate::components::{Bullet, Enemy, Weapon, WeaponArea, WeaponCooldown};
 use crate::resources::BULLET_SPEED;
 use crate::systems::player::components::Player;
 use crate::systems::weapons::utils;
 use bevy::math::{Quat, Vec3};
-use bevy::prelude::{GlobalTransform, Query, Res, Time, Transform, With};
+use bevy::prelude::{Commands, GlobalTransform, Query, Res, Time, Transform, With, Without};
 
 /// Smoothly moves and rotates weapons within their designated sectors to aim at nearest enemy
 pub fn update_weapon_positioning(
@@ -62,5 +62,49 @@ pub fn update_weapon_positioning(
 pub fn move_bullets(mut bullet_query: Query<(&mut Transform, &Bullet)>, time: Res<Time>) {
     for (mut transform, bullet) in &mut bullet_query {
         transform.translation += bullet.direction.extend(0.0) * BULLET_SPEED * time.delta_secs();
+    }
+}
+
+pub fn auto_shoot(
+    mut commands: Commands,
+    weapons_query: Query<(&GlobalTransform, &mut Weapon, &mut WeaponCooldown)>,
+    enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
+    time: Res<Time>,
+) {
+    for (weapon_transform, weapon, mut cooldown) in weapons_query {
+        cooldown.timer.tick(time.delta());
+
+        if !cooldown.timer.is_finished() {
+            continue; // still on cooldown -> continue
+        }
+        let weapon_pos = weapon_transform.translation();
+
+        let Some(nearest_enemy) = utils::get_nearest_enemy(
+            weapon_transform,
+            enemy_query.iter().collect(),
+            weapon.base_range * weapon.range_multiplier,
+        ) else {
+            continue;
+        };
+
+        // Compute direction to enemy
+        let direction = (nearest_enemy - weapon_pos).truncate().normalize();
+
+        // Spawn a new bullet toward that direction
+        commands.spawn((
+            Transform::from_translation(weapon_pos).with_translation(Vec3::new(
+                weapon_pos.x,
+                weapon_pos.y,
+                1.0,
+            )),
+            Bullet {
+                direction,
+                damage: weapon.base_damage * weapon.damage_multiplier,
+                kind: weapon.kind,
+            },
+        ));
+
+        // reset cooldown
+        cooldown.timer.reset();
     }
 }

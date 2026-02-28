@@ -1,6 +1,5 @@
 pub mod camera;
 pub mod collision;
-pub mod combat;
 pub mod debug;
 pub mod enemy;
 pub mod game;
@@ -10,5 +9,4 @@ pub mod player;
 pub mod player_animations;
 pub mod player_upgrades;
 pub mod setup;
-pub mod wave;
 pub mod weapons;

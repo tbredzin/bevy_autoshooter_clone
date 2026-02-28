@@ -1,5 +1,4 @@
-use crate::components::{Health, Weapon, WeaponCooldown};
-use crate::resources::{WaveManager, WaveState};
+use crate::components::{Weapon, WeaponCooldown};
 use crate::systems::input::resources::ActionState;
 use crate::systems::player::components::Player;
 use crate::systems::player::experience::PlayerExperience;
@@ -10,40 +9,6 @@ use crate::systems::player_upgrades::components::*;
 use bevy::prelude::TimerMode::Once;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
-
-pub fn apply_upgrade(
-    cards: Query<&mut UpgradeCard, Changed<UpgradeCard>>,
-    mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience), With<Player>>,
-    weapon_query: Query<(&mut Weapon, &mut WeaponCooldown)>,
-) {
-    let Ok((mut stats, mut exp)) = player_query.single_mut() else {
-        return;
-    };
-
-    for mut card in cards {
-        if card.state == ToApply {
-            println!(
-                "Applying upgrade from {:?} to {:?}, {:?}",
-                card.upgrade, stats, exp
-            );
-            exp.new_levels -= 1;
-
-            stats.apply_upgrade(&card.upgrade);
-
-            for (mut weapon, mut cooldown) in weapon_query {
-                weapon.damage_multiplier = stats.damage_multiplier;
-                weapon.fire_rate_multiplier = stats.fire_rate_multiplier;
-                weapon.range_multiplier = stats.range_multiplier;
-                cooldown.timer = Timer::from_seconds(
-                    weapon.base_cooldown / weapon.fire_rate_multiplier,
-                    Repeating,
-                )
-            }
-            card.state = Applied;
-            break;
-        }
-    }
-}
 
 pub fn handle_update_selection(
     actions: Res<ActionState>,
@@ -87,55 +52,36 @@ pub fn handle_update_selection(
     }
 }
 
-pub fn handle_next_wave_button(
-    mut commands: Commands,
-    actions: Res<ActionState>,
-    button_query: Query<Entity, With<NextWaveButton>>,
-    ui_query: Query<Entity, With<UpgradeUI>>,
-    mut wave_manager: ResMut<WaveManager>,
-    mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
+pub fn apply_upgrade(
+    cards: Query<&mut UpgradeCard, Changed<UpgradeCard>>,
+    mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience), With<Player>>,
+    weapon_query: Query<(&mut Weapon, &mut WeaponCooldown)>,
 ) {
-    if actions.start_next_wave && !button_query.is_empty() {
-        for entity in button_query {
-            commands.entity(entity).despawn();
+    let Ok((mut stats, mut exp)) = player_query.single_mut() else {
+        return;
+    };
+
+    for mut card in cards {
+        if card.state == ToApply {
+            println!(
+                "Applying upgrade from {:?} to {:?}, {:?}",
+                card.upgrade, stats, exp
+            );
+            exp.new_levels -= 1;
+
+            stats.apply_upgrade(&card.upgrade);
+
+            for (mut weapon, mut cooldown) in weapon_query {
+                weapon.damage_multiplier = stats.damage_multiplier;
+                weapon.fire_rate_multiplier = stats.fire_rate_multiplier;
+                weapon.range_multiplier = stats.range_multiplier;
+                cooldown.timer = Timer::from_seconds(
+                    weapon.base_cooldown / weapon.fire_rate_multiplier,
+                    Repeating,
+                )
+            }
+            card.state = Applied;
+            break;
         }
-        for entity in ui_query {
-            commands.entity(entity).despawn();
-        }
-        start_next_wave(&mut wave_manager, &mut player_query);
-    }
-}
-
-/** UTILS **/
-
-fn start_next_wave(
-    wave_manager: &mut ResMut<WaveManager>,
-    player_query: &mut Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
-) {
-    // Increment wave and start
-    wave_manager.wave += 1;
-    wave_manager.wave_state = WaveState::Running;
-
-    // Reset wave timer
-    wave_manager
-        .wave_timer
-        .set_duration(std::time::Duration::from_secs_f32(
-            crate::resources::WAVE_DURATION,
-        ));
-    wave_manager.wave_timer.reset();
-
-    // Reset enemy spawn timer to base rate
-    wave_manager
-        .enemy_spawn_timer
-        .set_duration(std::time::Duration::from_secs_f32(
-            crate::resources::SPAWN_RATE,
-        ));
-    wave_manager.enemy_spawn_timer.reset();
-
-    // Reset player's counters and health
-    for (stats, mut experience, mut health) in player_query.iter_mut() {
-        println!("Resetting level counter from {}", experience.new_levels);
-        experience.new_levels = 0;
-        health.value = stats.max_health;
     }
 }
