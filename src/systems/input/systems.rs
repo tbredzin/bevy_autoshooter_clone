@@ -58,11 +58,6 @@ fn collect_keyboard_actions(
         match key {
             KeyCode::Tab => actions.toggle_show_stats ^= true,
             KeyCode::F1 => actions.toggle_show_debug ^= true,
-            KeyCode::Enter | KeyCode::Space => actions.start_next_wave |= true,
-            KeyCode::Digit1 => actions.card_select[0] |= true,
-            KeyCode::Digit2 => actions.card_select[1] |= true,
-            KeyCode::Digit3 => actions.card_select[2] |= true,
-            KeyCode::Digit4 => actions.card_select[3] |= true,
             KeyCode::Unidentified(_) => {}
             _ => {}
         }
@@ -73,6 +68,11 @@ fn collect_keyboard_actions(
             KeyCode::KeyS | KeyCode::ArrowDown => actions.movement.y -= 1.0,
             KeyCode::KeyA | KeyCode::ArrowLeft => actions.movement.x -= 1.0,
             KeyCode::KeyD | KeyCode::ArrowRight => actions.movement.x += 1.0,
+            KeyCode::Digit1 => actions.card_select[0] |= true,
+            KeyCode::Digit2 => actions.card_select[1] |= true,
+            KeyCode::Digit3 => actions.card_select[2] |= true,
+            KeyCode::Digit4 => actions.card_select[3] |= true,
+            KeyCode::Enter | KeyCode::Space => actions.start_next_wave |= true,
             _ => {}
         }
     }
@@ -82,16 +82,22 @@ fn collect_keyboard_actions(
 fn collect_gamepad_actions(gamepad: &Gamepad, actions: &mut ResMut<ActionState>) {
     for button in gamepad.get_just_pressed() {
         match button {
-            GamepadButton::West => actions.card_select[0] |= true,
-            GamepadButton::South => actions.card_select[1] |= true,
-            GamepadButton::North => actions.card_select[2] |= true,
-            GamepadButton::East => actions.card_select[3] |= true,
-            GamepadButton::Start => actions.start_next_wave |= true,
             GamepadButton::Select => actions.toggle_show_stats ^= true,
             GamepadButton::LeftThumb => actions.toggle_show_debug ^= true,
             _ => {}
         }
     }
+    for button in gamepad.get_pressed() {
+        match button {
+            GamepadButton::West => actions.card_select[0] |= true,
+            GamepadButton::South => actions.card_select[1] |= true,
+            GamepadButton::North => actions.card_select[2] |= true,
+            GamepadButton::East => actions.card_select[3] |= true,
+            GamepadButton::Start => actions.start_next_wave |= true,
+            _ => {}
+        }
+    }
+
     if gamepad.left_stick().length() > GAMEPAD_DEAD_ZONE {
         actions.movement = gamepad.left_stick().normalize_or_zero();
     } else if gamepad.dpad().length() > 0.0 {

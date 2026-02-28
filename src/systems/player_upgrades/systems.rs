@@ -1,5 +1,6 @@
 use crate::components::{Health, Weapon, WeaponCooldown};
 use crate::resources::{WaveManager, WaveState};
+use crate::systems::input::resources::ActionState;
 use crate::systems::player::components::Player;
 use crate::systems::player::experience::PlayerExperience;
 use crate::systems::player_upgrades::components::UpgradeCardSelectionState::{
@@ -27,10 +28,8 @@ pub fn apply_upgrade(
             );
             exp.new_levels -= 1;
 
-            // Apply stat upgrade
             stats.apply_upgrade(&card.upgrade);
 
-            // Apply stat changes to existing weapons
             for (mut weapon, mut cooldown) in weapon_query {
                 weapon.damage_multiplier = stats.damage_multiplier;
                 weapon.fire_rate_multiplier = stats.fire_rate_multiplier;
@@ -46,16 +45,14 @@ pub fn apply_upgrade(
     }
 }
 
-//TODO: mutualize
-pub fn handle_gamepad_update_selection(
-    gamepad: Single<&Gamepad>, //TODO: support multiple
+pub fn handle_update_selection(
+    actions: Res<ActionState>,
     mut card_query: Query<(&mut UpgradeCard, &mut UpgradeCardAnimation, &CardIndex)>,
     time: Res<Time>,
 ) {
-    let gamepad = gamepad.into_inner();
     let card = card_query
         .iter_mut()
-        .find(|(card, _, index)| card_button_is_pressed(gamepad, index) || card.state == Selected);
+        .find(|(card, _, index)| actions.card_select[index.0] || card.state == Selected);
 
     let mut holding_card_index = 255;
     if let Some((mut card, mut animation, index)) = card {
@@ -92,35 +89,20 @@ pub fn handle_gamepad_update_selection(
 
 pub fn handle_next_wave_button(
     mut commands: Commands,
-    optional_gamepad: Option<Single<&Gamepad>>,
-    mut interaction_query: Query<&Interaction, (Changed<Interaction>, With<NextWaveButton>)>,
+    actions: Res<ActionState>,
     button_query: Query<Entity, With<NextWaveButton>>,
     ui_query: Query<Entity, With<UpgradeUI>>,
     mut wave_manager: ResMut<WaveManager>,
     mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience, &mut Health), With<Player>>,
 ) {
-    // Check for Next Wave button press (Keyboard)
-    for interaction in &mut interaction_query {
-        if *interaction == Interaction::Pressed {
-            for entity in button_query {
-                commands.entity(entity).despawn();
-            }
-            for entity in ui_query {
-                commands.entity(entity).despawn();
-            }
-            start_next_wave(&mut wave_manager, &mut player_query);
-            return;
+    if actions.start_next_wave && !button_query.is_empty() {
+        for entity in button_query {
+            commands.entity(entity).despawn();
         }
-    }
-
-    // Gamepad
-    if let Some(gamepad) = optional_gamepad.as_ref() {
-        if gamepad.just_pressed(GamepadButton::Start) && !button_query.is_empty() {
-            for entity in ui_query {
-                commands.entity(entity).despawn();
-            }
-            start_next_wave(&mut wave_manager, &mut player_query);
+        for entity in ui_query {
+            commands.entity(entity).despawn();
         }
+        start_next_wave(&mut wave_manager, &mut player_query);
     }
 }
 
@@ -155,15 +137,5 @@ fn start_next_wave(
         println!("Resetting level counter from {}", experience.new_levels);
         experience.new_levels = 0;
         health.value = stats.max_health;
-    }
-}
-
-fn card_button_is_pressed(gamepad: &Gamepad, index: &CardIndex) -> bool {
-    match index.0 {
-        0 => gamepad.pressed(GamepadButton::West),
-        1 => gamepad.pressed(GamepadButton::South),
-        2 => gamepad.pressed(GamepadButton::North),
-        3 => gamepad.pressed(GamepadButton::East),
-        _ => false,
     }
 }

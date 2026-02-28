@@ -72,8 +72,8 @@ fn main() {
             Update,
             (
                 wave::update_wave_timer,
+                input::systems::detect_input_device,
                 (
-                    input::systems::detect_input_device,
                     player::movement::update_position,
                     player::experience::handle_enemy_death,
                     enemy::engine::update_spawning,
@@ -90,7 +90,7 @@ fn main() {
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
                     player_upgrades::systems::handle_next_wave_button,
-                    player_upgrades::systems::handle_gamepad_update_selection,
+                    player_upgrades::systems::handle_update_selection,
                     player_upgrades::systems::apply_upgrade,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
