@@ -4,7 +4,7 @@ mod resources;
 mod systems;
 
 use crate::resources::{WaveManager, WaveState, WINDOW_HEIGHT, WINDOW_WIDTH};
-use crate::systems::gamepad_debug::GamepadDisplayEnabled;
+use crate::systems::input::plugin::InputPlugin;
 use crate::systems::player_animations::plugins::PlayerAnimationPlugin;
 use crate::systems::player_upgrades::resources::UpgradePool;
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
@@ -45,14 +45,13 @@ fn main() {
                 frame_time_graph_config: Default::default(),
             },
         })
-        .add_plugins(PlayerAnimationPlugin)
+        .add_plugins((PlayerAnimationPlugin, InputPlugin))
         .insert_resource(WinitSettings {
             focused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
         .init_resource::<WaveManager>()
         .init_resource::<UpgradePool>()
-        .init_resource::<GamepadDisplayEnabled>()
         .add_systems(
             Startup,
             (
@@ -60,7 +59,7 @@ fn main() {
                 weapons::resources::init,
                 setup::spawn_entities,
                 setup::spawn_background,
-                gamepad_debug::setup_gamepad_display,
+                debug::setup_input_hud,
             )
                 .chain(),
         )
@@ -74,6 +73,7 @@ fn main() {
             (
                 wave::update_wave_timer,
                 (
+                    input::systems::detect_input_device,
                     player::movement::update_position,
                     player::experience::handle_enemy_death,
                     enemy::engine::update_spawning,
@@ -85,8 +85,7 @@ fn main() {
                     collision::check_bullet_enemy_collision,
                     collision::check_player_enemy_collision,
                     weapons::systems::move_bullets,
-                    gamepad_debug::toggle_gamepad_display,
-                    gamepad_debug::display_button_pressed,
+                    debug::display_button_pressed,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
@@ -107,6 +106,7 @@ fn main() {
                 hud::update_stats_display,
                 hud::show_level_ups
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
+                debug::update_active_device_indicator,
                 (
                     hud::clear_level_ups,
                     player_upgrades::renderer::show_upgrade_ui,

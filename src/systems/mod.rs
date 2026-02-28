@@ -6,6 +6,7 @@ pub mod enemy;
 pub mod game;
 pub mod gamepad_debug;
 pub mod hud;
+pub mod input;
 pub mod player;
 pub mod player_animations;
 pub mod player_upgrades;

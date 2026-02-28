@@ -100,3 +100,52 @@ impl GamepadAsset {
         } as usize;
     }
 }
+
+#[derive(Resource)]
+pub struct KeyboardAsset {}
+
+impl KeyboardAsset {
+    pub fn keycode_label(&self, key: &KeyCode) -> &'static str {
+        match key {
+            // Movement
+            KeyCode::KeyW | KeyCode::ArrowUp => "UP",
+            KeyCode::KeyS | KeyCode::ArrowDown => "DOWN",
+            KeyCode::KeyA | KeyCode::ArrowLeft => "LEFT",
+            KeyCode::KeyD | KeyCode::ArrowRight => "RIGHT",
+            // Common actions
+            KeyCode::Space => "SPC",
+            KeyCode::Enter => "ENTER",
+            KeyCode::Tab => "TAB",
+            KeyCode::Escape => "ESC",
+            KeyCode::Backspace => "Backspace",
+            KeyCode::ShiftLeft | KeyCode::ShiftRight => "SHIFT",
+            KeyCode::ControlLeft | KeyCode::ControlRight => "CTRL",
+            KeyCode::AltLeft | KeyCode::AltRight => "ALT",
+            // Digits
+            KeyCode::Digit0 => "0",
+            KeyCode::Digit1 => "1",
+            KeyCode::Digit2 => "2",
+            KeyCode::Digit3 => "3",
+            KeyCode::Digit4 => "4",
+            KeyCode::Digit5 => "5",
+            KeyCode::Digit6 => "6",
+            KeyCode::Digit7 => "7",
+            KeyCode::Digit8 => "8",
+            KeyCode::Digit9 => "9",
+            // Function keys
+            KeyCode::F1 => "F1",
+            KeyCode::F2 => "F2",
+            KeyCode::F3 => "F3",
+            KeyCode::F4 => "F4",
+            KeyCode::F5 => "F5",
+            KeyCode::F6 => "F6",
+            KeyCode::F7 => "F7",
+            KeyCode::F8 => "F8",
+            KeyCode::F9 => "F9",
+            KeyCode::F10 => "F10",
+            KeyCode::F11 => "F11",
+            KeyCode::F12 => "F12",
+            _ => "?",
+        }
+    }
+}
