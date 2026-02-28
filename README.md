@@ -9,7 +9,7 @@
 
 ## Current Implementation Status
 
-### ✅ Completed Features
+### Completed Features
 
 - Player movement (WASD/Arrow keys)
 - Camera follow system with smooth lerp
@@ -23,7 +23,7 @@
 - Tile-based background with sprite atlas
 - Component-based architecture using Bevy ECS
 
-### 🚧 Currently Implementing
+### Currently Implementing
 
 - **Visual Polish**
 
@@ -49,7 +49,7 @@
 - [ ] Enemy visual differentiation (different colors/shapes)
 - [ ] Mini-boss spawns at wave 3, 6, 9, etc.
 
-### 3. Visual Polish 🎨
+### 3. Visual Polish
 
 - [ ] Particle system integration
     - Bullet impact particles
@@ -102,7 +102,7 @@ Current: Only spawn rate increases
 - [ ] Minimap showing enemy positions
 - [ ] Arena boundary visual improvements
 
-### 8. Audio Integration 🔊
+### 8. Audio Integration
 
 - [ ] Background music system
 - [ ] Dynamic music intensity based on enemy count
