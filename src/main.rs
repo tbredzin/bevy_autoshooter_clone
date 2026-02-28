@@ -85,9 +85,8 @@ fn main() {
                     collision::check_bullet_enemy_collision,
                     collision::check_player_enemy_collision,
                     weapons::systems::move_bullets,
-                    gamepad_debug::toggle_gamepad_display, // Add this
-                    gamepad_debug::display_button_presses, // Add this
-                    gamepad_debug::hide_button_released,   // Add this
+                    gamepad_debug::toggle_gamepad_display,
+                    gamepad_debug::display_button_pressed,
                 )
                     .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
@@ -106,7 +105,8 @@ fn main() {
                 hud::update_ui,
                 hud::show_stats_display,
                 hud::update_stats_display,
-                hud::show_level_ups.run_if(run_once), //|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
+                hud::show_level_ups
+                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
                 (
                     hud::clear_level_ups,
                     player_upgrades::renderer::show_upgrade_ui,
