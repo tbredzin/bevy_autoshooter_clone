@@ -2,16 +2,15 @@ use crate::components::Weapon;
 use crate::components::WeaponKind::{MachineGun, Pistol, Shotgun};
 use crate::resources::tiles_to_pixels;
 use bevy::asset::{Assets, Handle};
-use bevy::color::Color;
 use bevy::color::palettes::basic::{BLACK, RED};
 use bevy::color::palettes::css::PINK;
+use bevy::color::Color;
 use bevy::mesh::Mesh;
 use bevy::prelude::{Circle, ColorMaterial, Commands, Rectangle, ResMut, Resource};
 #[derive(Resource)]
 pub struct GeometricMeshes {
     pub circle_small: Handle<Mesh>,
     pub circle_medium: Handle<Mesh>,
-    pub circle_large: Handle<Mesh>,
     pub square_large: Handle<Mesh>,
     pub rectangle_small: Handle<Mesh>,
     pub rectangle_medium: Handle<Mesh>,
@@ -39,7 +38,6 @@ pub fn init(
     commands.insert_resource(GeometricMeshes {
         circle_small: meshes.add(Circle::new(2.0)),
         circle_medium: meshes.add(Circle::new(8.0)),
-        circle_large: meshes.add(Circle::new(18.0)),
         square_large: meshes.add(Rectangle::new(18.0, 18.0)),
         rectangle_small: meshes.add(Rectangle::new(18.0, 8.0)),
         rectangle_medium: meshes.add(Rectangle::new(18.0, 8.0)),

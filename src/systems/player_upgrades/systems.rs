@@ -12,7 +12,7 @@ use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
 
 pub fn apply_upgrade(
-    cards: Query<(&mut UpgradeCard), Changed<UpgradeCard>>,
+    cards: Query<&mut UpgradeCard, Changed<UpgradeCard>>,
     mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience), With<Player>>,
     weapon_query: Query<(&mut Weapon, &mut WeaponCooldown)>,
 ) {
@@ -20,7 +20,7 @@ pub fn apply_upgrade(
         return;
     };
 
-    for (mut card) in cards {
+    for mut card in cards {
         if card.state == ToApply {
             println!(
                 "Applying upgrade from {:?} to {:?}, {:?}",
@@ -64,7 +64,7 @@ pub fn handle_update_selection(
                 animation.timer.tick(time.delta());
                 if animation.timer.just_finished() {
                     card.state = Selected;
-                    animation.timer = Timer::from_seconds(1.0, Once);
+                    animation.timer = Timer::from_seconds(HOLD_DURATION, Once);
                 }
             }
             Selected => {
@@ -82,7 +82,7 @@ pub fn handle_update_selection(
         if index.0 != holding_card_index && (upgrade.state != Selected || upgrade.state != ToApply)
         {
             upgrade.state = Unselected;
-            animation.timer = Timer::from_seconds(1.0, Once);
+            animation.timer = Timer::from_seconds(HOLD_DURATION, Once);
         }
     }
 }

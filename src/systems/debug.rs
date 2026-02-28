@@ -8,13 +8,9 @@ pub struct InputIconsRow;
 #[derive(Component)]
 pub struct ActiveDeviceIndicator;
 #[derive(Component)]
-pub struct ButtonIcon {
-    pub button: GamepadButton,
-}
+pub struct ButtonIcon {}
 #[derive(Component)]
-pub struct KeyIcon {
-    pub key: KeyCode,
-}
+pub struct KeyIcon {}
 
 const COLOR_KEYBOARD: Color = Color::srgb(0.4, 0.8, 1.0); // cyan-ish blue
 const COLOR_GAMEPAD: Color = Color::srgb(1., 0., 0.); // green
@@ -130,7 +126,7 @@ pub fn display_button_pressed(
 
 fn show_button(button: &GamepadButton, asset: &GamepadAsset) -> (ButtonIcon, ImageNode, Node) {
     (
-        ButtonIcon { button: *button },
+        ButtonIcon {},
         ImageNode::from_atlas_image(
             asset.texture.clone(),
             TextureAtlas::from(asset.layout.clone()).with_index(asset.get_button_index(button)),
@@ -156,7 +152,7 @@ fn show_key(
 ) {
     let label = asset.keycode_label(key);
     (
-        KeyIcon { key: *key },
+        KeyIcon {},
         Node {
             padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
             border: UiRect::all(Val::Px(2.0)),
