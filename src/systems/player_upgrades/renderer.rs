@@ -259,11 +259,11 @@ fn spawn_upgrade_card(
                             border: UiRect::all(Val::Px(3.0)),
                             justify_content: JustifyContent::Center,
                             align_items: AlignItems::Center,
+                            border_radius: BorderRadius::all(Val::Px(40.0)),
                             ..default()
                         },
                         BackgroundColor(icon_color),
                         BorderColor::all(Color::WHITE),
-                        BorderRadius::all(Val::Px(40.0)),
                         children![(
                             ImageNode::from_atlas_image(
                                 sprites.texture.clone(),

@@ -1,14 +1,14 @@
 use crate::components::{Enemy, Health, MarkedForDespawn, Spawning};
 use crate::messages::EnemyDeathMessage;
 use crate::resources::{
-    ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA, SPAWN_RATE, WaveManager,
-    tiles_to_pixels,
+    tiles_to_pixels, WaveManager, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA,
+    SPAWN_RATE,
 };
 use crate::systems::player::components::Player;
 use bevy::prelude::*;
-use rand::Rng;
-use rand::distr::Distribution;
 use rand::distr::weighted::WeightedIndex;
+use rand::distr::Distribution;
+use rand::RngExt;
 
 pub fn update_spawning(
     mut commands: Commands,

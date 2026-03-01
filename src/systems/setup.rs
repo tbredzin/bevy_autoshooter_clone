@@ -9,7 +9,7 @@ use crate::systems::player_animations::resources::AnimationAssets;
 use crate::systems::weapons::resources::WeaponsLibrary;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
-use rand::Rng;
+use rand::RngExt;
 use std::f32::consts;
 
 pub fn init_resources(

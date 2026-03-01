@@ -147,7 +147,6 @@ fn show_key(
     Node,
     BackgroundColor,
     BorderColor,
-    BorderRadius,
     SpawnRelatedBundle<ChildOf, Spawn<(Text, TextFont, TextColor)>>,
 ) {
     let label = asset.keycode_label(key);
@@ -160,11 +159,11 @@ fn show_key(
             justify_content: JustifyContent::Center,
             min_width: Val::Px(32.0),
             height: Val::Px(32.0),
+            border_radius: BorderRadius::all(Val::Px(5.0)),
             ..default()
         },
         BackgroundColor(Color::srgba(0.12, 0.18, 0.25, 0.92)),
         BorderColor::all(COLOR_KEYBOARD),
-        BorderRadius::all(Val::Px(5.0)),
         children![(
             Text::new(label),
             TextFont {

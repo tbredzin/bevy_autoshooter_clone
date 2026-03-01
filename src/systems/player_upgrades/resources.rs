@@ -1,6 +1,6 @@
 use crate::systems::player_upgrades::components::{StatKind, StatUpgrade, UpgradeRarity};
 use bevy::prelude::Resource;
-use rand::Rng;
+use rand::RngExt;
 
 #[derive(Resource)]
 pub struct UpgradePool {

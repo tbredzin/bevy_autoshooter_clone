@@ -141,11 +141,11 @@ pub fn show_stats_display(
                 flex_direction: FlexDirection::Column,
                 row_gap: Val::Px(12.0),
                 border: UiRect::all(Val::Px(3.0)),
+                border_radius: BorderRadius::all(Val::Px(10.0)), // ← now a Node field
                 ..default()
             },
             BackgroundColor(Color::srgba(0.1, 0.1, 0.15, 0.95)),
             BorderColor::all(Color::srgb(0.3, 0.5, 0.8)),
-            BorderRadius::all(Val::Px(10.0)),
         ))
         .with_children(|parent| {
             spawn_stat_title(&sprites, parent);
