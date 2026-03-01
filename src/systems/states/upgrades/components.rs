@@ -3,12 +3,44 @@ use crate::systems::states::upgrades::components::UpgradeCardState::Unselected;
 use crate::systems::states::waves::player::components::StatKind;
 use bevy::color::Color;
 use bevy::prelude::{Component, Timer};
+use std::fmt;
+use std::fmt::Display;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI markers
+// ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Component)]
-pub struct UpgradeUI;
+pub struct UpgradeSelectionUI;
 
 #[derive(Component)]
-pub struct UpgradeCardButton;
+pub struct UpgradeCardsRow;
+
+/// Marks the top-right input badge on each card.
+/// The badge contains both a KeyboardLabel and a GamepadLabel child,
+/// exactly one of which is visible at any time.
+#[derive(Component)]
+pub struct CardKeyBadge(pub usize);
+
+/// Keyboard "1/2/3/4" text node inside a CardKeyBadge.
+#[derive(Component)]
+pub struct KeyboardLabel;
+
+/// Gamepad button image node inside a CardKeyBadge.
+#[derive(Component)]
+pub struct GamepadLabel;
+
+/// Absolute background fill that rises from the card bottom while the player holds.
+#[derive(Component)]
+pub struct CardProgressFill;
+
+/// Thin horizontal bar at the card bottom that fills left→right while holding.
+#[derive(Component)]
+pub struct CardHoldBar;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UpgradeCard
+// ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Component, Copy, Clone, Debug)]
 pub struct UpgradeCard {
@@ -36,6 +68,7 @@ impl UpgradeCard {
             rarity,
         }
     }
+
     pub fn get_display_info(&self) -> (usize, String, Color) {
         let display = DisplayStatKind::from(self.kind);
         let (texture_index, name, color) = display.get_display_info();
@@ -53,6 +86,10 @@ impl UpgradeCard {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Rarity
+// ─────────────────────────────────────────────────────────────────────────────
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum UpgradeRarity {
     Common,
@@ -60,14 +97,19 @@ pub enum UpgradeRarity {
     Rare,
     Legendary,
 }
+impl Display for UpgradeRarity {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 impl UpgradeRarity {
     pub fn get_color(&self) -> Color {
         match self {
-            UpgradeRarity::Common => Color::srgb(0.7, 0.7, 0.7),
-            UpgradeRarity::Uncommon => Color::srgb(0.3, 1.0, 0.3),
-            UpgradeRarity::Rare => Color::srgb(0.3, 0.5, 1.0),
-            UpgradeRarity::Legendary => Color::srgb(1.0, 0.8, 0.0),
+            UpgradeRarity::Common => Color::srgb(0.75, 0.75, 0.75),
+            UpgradeRarity::Uncommon => Color::srgb(0.3, 0.9, 0.45),
+            UpgradeRarity::Rare => Color::srgb(0.35, 0.55, 1.0),
+            UpgradeRarity::Legendary => Color::srgb(1.0, 0.75, 0.0),
         }
     }
     pub fn get_odds(&self) -> f32 {
@@ -80,20 +122,35 @@ impl UpgradeRarity {
     }
 }
 
-/// How long the button must be held to confirm selection (in seconds)
+// ─────────────────────────────────────────────────────────────────────────────
+// Timing / animation constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// How long (s) a button must be held to confirm the selection.
 pub const HOLD_DURATION: f32 = 1.0;
+
+/// How long (s) the burst animation plays after confirming.
+pub const SELECTION_ANIM_DURATION: f32 = 0.5;
+
+/// Wobble frequency multiplier during the burst animation.
 pub const SELECTION_FREQUENCY: f32 = 4.0;
 
-/// Component to mark which card corresponds to which gamepad button
+/// Gamepad button atlas sprite indices for card slots 0-3 (West / South / North / East).
+/// Formula: SPRITESHEET_BEGIN(71) + SPRITESHEET_WIDTH(35) × row
+pub const GAMEPAD_BUTTON_INDICES: [usize; 4] = [71, 106, 141, 176];
+
+/// Which card slot maps to which button.
 #[derive(Component)]
 pub struct CardIndex(pub usize);
 
-/// Component for the progress bar fill overlay
-#[derive(Component)]
-pub struct CardProgressFill;
+// ─────────────────────────────────────────────────────────────────────────────
+// Animation state
+// ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Component, Debug)]
 pub struct UpgradeCardAnimation {
+    /// Holding  → counts up to HOLD_DURATION         (ticked in systems.rs)
+    /// Selected → counts up to SELECTION_ANIM_DURATION (ticked in systems.rs)
     pub timer: Timer,
 }
 

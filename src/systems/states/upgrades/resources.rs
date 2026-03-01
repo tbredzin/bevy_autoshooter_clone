@@ -7,6 +7,8 @@ use rand::RngExt;
 pub struct UpgradeCardsPool {
     pub upgrades: Vec<UpgradeCard>,
 }
+#[derive(Resource, Default)]
+pub struct RedrawCardsPool(pub(crate) bool);
 
 impl Default for UpgradeCardsPool {
     fn default() -> Self {

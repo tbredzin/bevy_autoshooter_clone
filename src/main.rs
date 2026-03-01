@@ -4,7 +4,7 @@ use crate::systems::game::GameState;
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::plugin::InputPlugin;
 use crate::systems::input::resources::{GamepadAsset, KeyboardAsset};
-use crate::systems::states::upgrades::resources::UpgradeCardsPool;
+use crate::systems::states::upgrades::resources::{RedrawCardsPool, UpgradeCardsPool};
 use crate::systems::states::waves;
 use crate::systems::states::waves::resources::TilesTextureAtlas;
 use crate::systems::states::waves::weapons::resources::{
@@ -65,6 +65,7 @@ fn main() {
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
         .init_resource::<UpgradeCardsPool>()
+        .init_resource::<RedrawCardsPool>()
         .init_resource::<WaveManager>()
         .init_resource::<TilesTextureAtlas>()
         .init_resource::<HUDTextureAtlas>()
@@ -144,6 +145,9 @@ fn main() {
                 upgrades::systems::handle_update_selection,
                 upgrades::systems::apply_upgrade,
                 upgrades::renderer::animate_card_selection,
+                upgrades::renderer::animate_hold_bars,
+                upgrades::renderer::update_card_key_badges,
+                upgrades::renderer::draw_new_cards,
             )
                 .run_if(in_state(GameState::UpgradeSelection)),
         )

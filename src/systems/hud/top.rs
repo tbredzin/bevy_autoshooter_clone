@@ -72,7 +72,7 @@ pub fn update_level_up_indicator(
     };
     match children {
         None => {
-            if player_xp.new_levels > 1 {
+            if player_xp.new_levels >= 1 {
                 commands
                     .entity(hud_level_ups)
                     .with_child(HUDLevelUp::render(sprites));
