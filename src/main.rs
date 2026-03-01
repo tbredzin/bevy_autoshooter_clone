@@ -1,22 +1,28 @@
-mod components;
 mod messages;
 mod resources;
 mod systems;
 
-use crate::resources::{WaveManager, WaveState, WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::resources::{WINDOW_HEIGHT, WINDOW_WIDTH};
+use crate::systems::game::GameState;
 use crate::systems::input::plugin::InputPlugin;
-use crate::systems::player_animations::plugins::PlayerAnimationPlugin;
-use crate::systems::player_upgrades::resources::UpgradePool;
+use crate::systems::states::upgrades::resources::UpgradePool;
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
+use states::upgrades;
 use std::time::Duration;
+use systems::animations::plugins::PlayerAnimationPlugin;
+use systems::game;
+use systems::input::debug;
+use systems::states::waves::resources::WaveManager;
+use systems::states::waves::{camera, collision, enemy, player, weapons};
+use systems::states::{shopping, waves};
 use systems::*;
-use systems::{game, player_upgrades, weapons};
 
 fn main() {
     App::new()
+        // ----------------------------- Plugins ---------------------------------- //
         .add_plugins(
             DefaultPlugins
                 .set(WindowPlugin {
@@ -46,12 +52,15 @@ fn main() {
             },
         })
         .add_plugins((PlayerAnimationPlugin, InputPlugin))
+        // ----------------------------- Resources ---------------------------------- //
+        .init_state::<GameState>()
         .insert_resource(WinitSettings {
             focused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
-        .init_resource::<WaveManager>()
         .init_resource::<UpgradePool>()
+        .init_resource::<WaveManager>()
+        // ------------------------------------------------------------------------- //
         .add_systems(
             Startup,
             (
@@ -59,64 +68,83 @@ fn main() {
                 weapons::resources::init,
                 setup::spawn_entities,
                 setup::spawn_background,
-                debug::setup_input_hud,
             )
                 .chain(),
         )
-        // Logic
         .add_systems(
             PreUpdate,
-            (game::out_of_bounds_system, game::despawn_marked_entities),
+            (
+                game::out_of_bounds_system,
+                game::despawn_marked_entities,
+                debug::display_button_pressed,
+                hud::systems::update_level_up_indicator,
+            ),
+        )
+        // ------------------------  In Wave state -------------------------------- //
+        .add_systems(OnEnter(GameState::InWave), (waves::systems::on_enter_wave,))
+        .add_systems(OnExit(GameState::InWave), waves::systems::on_exit_wave)
+        .add_systems(
+            Update,
+            (
+                waves::systems::update_wave_timer,
+                player::movement::update_position,
+                player::experience::handle_enemy_death,
+                enemy::engine::update_spawning,
+                enemy::engine::update_spawned,
+                enemy::engine::update_move,
+                enemy::engine::check_if_dead,
+                weapons::systems::update_weapon_positioning,
+                weapons::systems::auto_shoot,
+                collision::check_bullet_enemy_collision,
+                collision::check_player_enemy_collision,
+                weapons::systems::move_bullets,
+                enemy::renderer::render_spawning,
+            )
+                .run_if(in_state(GameState::InWave)),
+        )
+        .add_systems(
+            PostUpdate,
+            (
+                hud::systems::update,
+                hud::systems::show_stats_display,
+                hud::systems::update_stats_display,
+                camera::camera_follow_player,
+            )
+                .run_if(in_state(GameState::InWave)),
+        )
+        // ------------------------  UpgradeSelection state -------------------------------- //
+        .add_systems(
+            OnEnter(GameState::UpgradeSelection),
+            upgrades::renderer::on_enter_upgrade_mode,
+        )
+        .add_systems(
+            OnExit(GameState::UpgradeSelection),
+            upgrades::renderer::on_exit_upgrade_mode,
         )
         .add_systems(
             Update,
             (
-                game::update_wave_timer,
-                input::systems::detect_input_device,
-                (
-                    player::movement::update_position,
-                    player::experience::handle_enemy_death,
-                    enemy::engine::update_spawning,
-                    enemy::engine::update_spawned,
-                    enemy::engine::update_move,
-                    enemy::engine::check_if_dead,
-                    weapons::systems::update_weapon_positioning,
-                    weapons::systems::auto_shoot,
-                    collision::check_bullet_enemy_collision,
-                    collision::check_player_enemy_collision,
-                    weapons::systems::move_bullets,
-                    debug::display_button_pressed,
-                )
-                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
-                (
-                    game::start_next_wave,
-                    player_upgrades::systems::handle_update_selection,
-                    player_upgrades::systems::apply_upgrade,
-                )
-                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
-            ),
+                upgrades::systems::handle_update_selection,
+                hud::systems::update_stats_display,
+                upgrades::systems::apply_upgrade,
+                upgrades::renderer::animate_card_selection,
+            )
+                .run_if(in_state(GameState::UpgradeSelection)),
         )
-        // Rendering
+        // ------------------------  Shopping state -------------------------------- //
         .add_systems(
-            PostUpdate,
-            (
-                enemy::renderer::render_spawning,
-                hud::update_ui,
-                hud::show_stats_display,
-                hud::update_stats_display,
-                hud::show_level_ups
-                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Running),
-                debug::update_active_device_indicator,
-                player_upgrades::renderer::hide_upgrade_ui,
-                (
-                    hud::clear_level_ups,
-                    player_upgrades::renderer::show_upgrade_ui,
-                    player_upgrades::renderer::animate_card_selection,
-                )
-                    .run_if(|wave: Res<WaveManager>| wave.wave_state == WaveState::Ended),
-                camera::camera_follow_player,
-            ),
+            OnEnter(GameState::Shopping),
+            shopping::renderer::on_enter_shopping_mode,
         )
+        .add_systems(
+            OnExit(GameState::Shopping),
+            shopping::renderer::on_exit_shopping_mode,
+        )
+        .add_systems(
+            Update,
+            shopping::systems::start_next_wave.run_if(in_state(GameState::Shopping)),
+        )
+        // ------------------------------------------------------------------------- //
         .add_message::<messages::EnemyDeathMessage>()
         .run();
 }
