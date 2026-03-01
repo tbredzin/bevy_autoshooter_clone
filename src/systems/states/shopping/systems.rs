@@ -1,4 +1,4 @@
-use crate::resources::WAVE_DURATION;
+use crate::systems::constants::WAVE_DURATION;
 use crate::systems::game::GameState;
 use crate::systems::input::resources::ActionState;
 use crate::systems::states::waves::player::components::Health;
@@ -16,11 +16,11 @@ pub fn start_next_wave(
     if !actions.start_next_wave {
         return;
     }
-
     wave_manager.wave += 1;
     wave_manager
         .wave_timer
         .set_duration(std::time::Duration::from_secs_f32(WAVE_DURATION));
+
     for (stats, mut xp, mut health) in &mut player_query {
         xp.new_levels = 0;
         health.value = stats.max_health;

@@ -2,7 +2,7 @@ use crate::systems::game::MarkedForDespawn;
 use crate::systems::states::shopping::components::{NextWaveButton, ShoppingUI};
 use bevy::prelude::*;
 
-pub fn on_enter_shopping_mode(mut commands: Commands) {
+pub fn spawn_shopping(mut commands: Commands) {
     commands
         .spawn((
             ShoppingUI,
@@ -57,7 +57,7 @@ pub fn on_enter_shopping_mode(mut commands: Commands) {
         });
 }
 
-pub fn on_exit_shopping_mode(mut commands: Commands, ui: Query<Entity, With<ShoppingUI>>) {
+pub fn despawn_shopping(mut commands: Commands, ui: Query<Entity, With<ShoppingUI>>) {
     for e in ui {
         commands.entity(e).insert(MarkedForDespawn);
     }

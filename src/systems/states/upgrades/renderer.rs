@@ -1,5 +1,5 @@
 // src/systems/upgrades/renderer
-use crate::resources::NB_UPDATES_PER_LEVEL;
+use crate::systems::constants::NB_UPDATES_PER_LEVEL;
 use crate::systems::game::MarkedForDespawn;
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::resources::GamepadAsset;
@@ -7,7 +7,7 @@ use crate::systems::states::upgrades::components::UpgradeCardState::{
     Applied, Holding, Selected, ToApply, Unselected,
 };
 use crate::systems::states::upgrades::components::*;
-use crate::systems::states::upgrades::resources::UpgradePool;
+use crate::systems::states::upgrades::resources::UpgradeCardsPool;
 use crate::systems::states::waves::player;
 use crate::systems::states::waves::player::components::Player;
 use bevy::color::palettes::css::GOLD;
@@ -15,10 +15,9 @@ use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::prelude::*;
 use std::f32::consts::TAU;
 
-/// Spawns the upgrade UI when waves ends
-pub fn on_enter_upgrade_mode(
+pub fn spawn_upgrades_selection_ui(
     mut commands: Commands,
-    upgrade_pool: Res<UpgradePool>,
+    upgrade_pool: Res<UpgradeCardsPool>,
     player_query: Query<&player::experience::PlayerExperience, With<Player>>,
     sprites: Res<HUDTextureAtlas>,
     gamepad_asset: Res<GamepadAsset>,
@@ -54,7 +53,7 @@ pub fn on_enter_upgrade_mode(
             };
         });
 }
-pub fn on_exit_upgrade_mode(mut commands: Commands, ui: Query<Entity, With<UpgradeUI>>) {
+pub fn despawn_upgrades_selection_ui(mut commands: Commands, ui: Query<Entity, With<UpgradeUI>>) {
     for e in ui {
         commands.entity(e).insert(MarkedForDespawn);
     }

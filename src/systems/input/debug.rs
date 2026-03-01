@@ -84,7 +84,7 @@ pub fn update_active_device_indicator(
     }
 }
 
-pub fn display_button_pressed(
+pub fn debug_button_pressed(
     mut commands: Commands,
     keyboard: Res<ButtonInput<KeyCode>>,
     keyboard_asset: Res<KeyboardAsset>,

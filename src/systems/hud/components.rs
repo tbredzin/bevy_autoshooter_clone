@@ -13,7 +13,7 @@ pub const ICON_SPEED: usize = 29;
 pub const ICON_WAVE: usize = 59;
 
 #[derive(Component)]
-pub struct StatsDisplayUI;
+pub struct StatsPopup;
 
 #[derive(Component)]
 pub enum DisplayStatKind {

@@ -16,10 +16,55 @@ pub struct AnimationAssets {
 
     pub death_layout: Handle<TextureAtlasLayout>,
     pub death_texture: Handle<Image>,
-    pub death_shadow_layout: Handle<TextureAtlasLayout>,
+    pub death_shdw_layout: Handle<TextureAtlasLayout>,
     pub death_shadow_texture: Handle<Image>,
 
     pub shadow_texture: Handle<Image>,
+}
+
+impl FromWorld for AnimationAssets {
+    fn from_world(world: &mut World) -> Self {
+        // let mut atlas = world.resource_mut::<Assets<TextureAtlasLayout>>();
+
+        // Each frame is 48x64, arranged in 8 columns and 6 rows
+        let size = UVec2::new(48, 64);
+        let col = 8;
+        let row = 6;
+
+        // Load textures
+        AnimationAssets {
+            idle_texture: world.resource::<AssetServer>().load(IDLE_SPRITESHEET_PATH),
+            walk_texture: world.resource::<AssetServer>().load(WALK_SPRITESHEET_PATH),
+            dash_texture: world.resource::<AssetServer>().load(DASH_SPRITESHEET_PATH),
+            dash_dust_texture: world
+                .resource::<AssetServer>()
+                .load(DASH_DUST_SPRITESHEET_PATH),
+            death_texture: world.resource::<AssetServer>().load(DEATH_SPRITESHEET_PATH),
+            death_shadow_texture: world
+                .resource::<AssetServer>()
+                .load(DEATH_SHADOW_SPRITESHEET_PATH),
+            shadow_texture: world.resource::<AssetServer>().load(SHADOW_SPRITE_PATH),
+
+            idle_layout: world
+                .resource_mut::<Assets<TextureAtlasLayout>>()
+                .add(TextureAtlasLayout::from_grid(size, col, row, None, None)),
+            walk_layout: world
+                .resource_mut::<Assets<TextureAtlasLayout>>()
+                .add(TextureAtlasLayout::from_grid(size, col, row, None, None)),
+            dash_layout: world
+                .resource_mut::<Assets<TextureAtlasLayout>>()
+                .add(TextureAtlasLayout::from_grid(size, col, row, None, None)),
+            dash_dust_layout: world
+                .resource_mut::<Assets<TextureAtlasLayout>>()
+                .add(TextureAtlasLayout::from_grid(size, col, row, None, None)),
+            death_layout: world
+                .resource_mut::<Assets<TextureAtlasLayout>>()
+                .add(TextureAtlasLayout::from_grid(size, col, row, None, None)),
+            death_shdw_layout: world
+                .resource_mut::<Assets<TextureAtlasLayout>>()
+                .add(TextureAtlasLayout::from_grid(size, col, row, None, None)),
+        }
+    }
 }
 
 impl AnimationAssets {
@@ -44,58 +89,3 @@ const DEATH_SPRITESHEET_PATH: &'static str = "spritesheet/player/death_spriteshe
 const SHADOW_SPRITE_PATH: &'static str = "spritesheet/player/shadow_sprite.png";
 const DEATH_SHADOW_SPRITESHEET_PATH: &'static str =
     "spritesheet/player/death_shadow_spritesheet_8x6.png";
-
-/// System to load all animation assets at startup
-pub(crate) fn load_animation_assets(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-) {
-    // Each frame is 48x64, arranged in 8 columns and 6 rows
-    let frame_size = UVec2::new(48, 64);
-    let columns = 8;
-    let rows = 6;
-
-    // Create layouts for all spritesheets
-    let idle_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        frame_size, columns, rows, None, None,
-    ));
-    let walk_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        frame_size, columns, rows, None, None,
-    ));
-    let dash_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        frame_size, columns, rows, None, None,
-    ));
-    let dash_dust_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        frame_size, columns, rows, None, None,
-    ));
-    let death_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        frame_size, columns, rows, None, None,
-    ));
-    let death_shadow_layout = texture_atlas_layouts.add(TextureAtlasLayout::from_grid(
-        frame_size, columns, rows, None, None,
-    ));
-
-    // Load textures
-    let assets = AnimationAssets {
-        idle_layout,
-        idle_texture: asset_server.load(IDLE_SPRITESHEET_PATH),
-
-        walk_layout,
-        walk_texture: asset_server.load(WALK_SPRITESHEET_PATH),
-
-        dash_layout,
-        dash_texture: asset_server.load(DASH_SPRITESHEET_PATH),
-        dash_dust_layout,
-        dash_dust_texture: asset_server.load(DASH_DUST_SPRITESHEET_PATH),
-
-        death_layout,
-        death_texture: asset_server.load(DEATH_SPRITESHEET_PATH),
-        death_shadow_layout,
-        death_shadow_texture: asset_server.load(DEATH_SHADOW_SPRITESHEET_PATH),
-
-        shadow_texture: asset_server.load(SHADOW_SPRITE_PATH),
-    };
-
-    commands.insert_resource(assets);
-}

@@ -1,4 +1,4 @@
-use crate::resources::BULLET_SPEED;
+use crate::systems::constants::BULLET_SPEED;
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::weapons::components::{

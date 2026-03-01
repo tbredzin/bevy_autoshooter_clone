@@ -30,9 +30,3 @@ pub const GAME_AREA: Rect = Rect {
         y: (TILES_Y as f32 * TILE_SIZE) / 2.0,
     },
 };
-
-#[derive(Resource)]
-pub struct TilesTextureAtlas {
-    pub texture: Handle<Image>,
-    pub layout: Handle<TextureAtlasLayout>,
-}

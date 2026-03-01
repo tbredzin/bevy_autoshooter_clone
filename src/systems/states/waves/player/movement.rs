@@ -1,4 +1,4 @@
-use crate::resources::GAME_AREA;
+use crate::systems::constants::GAME_AREA;
 use crate::systems::input::resources::ActionState;
 use crate::systems::states::waves::player::components::PlayerStats;
 use crate::systems::states::waves::player::components::{Direction, Player, PlayerAction};

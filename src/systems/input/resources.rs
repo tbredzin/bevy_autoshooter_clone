@@ -63,8 +63,22 @@ impl GamepadAsset {
         } as usize;
     }
 }
+impl FromWorld for GamepadAsset {
+    fn from_world(world: &mut World) -> Self {
+        let texture = { world.resource::<AssetServer>() }.load("spritesheet/gdb-xbox-2.png");
+        let mut atlas = world.resource_mut::<Assets<TextureAtlasLayout>>();
+        let layout = atlas.add(TextureAtlasLayout::from_grid(
+            UVec2::splat(16u32), // tile size (width, height)
+            35,                  // columns
+            40,                  // rows
+            None,                // no padding
+            None,                // no offset
+        ));
+        GamepadAsset { texture, layout }
+    }
+}
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct KeyboardAsset {}
 
 impl KeyboardAsset {

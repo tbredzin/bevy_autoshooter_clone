@@ -1,9 +1,9 @@
-use crate::messages::EnemyDeathMessage;
-use crate::resources::{
+use crate::systems::constants::{
     tiles_to_pixels, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA, SPAWN_RATE,
 };
 use crate::systems::game::MarkedForDespawn;
 use crate::systems::states::waves::enemy::components::{Enemy, Spawning};
+use crate::systems::states::waves::enemy::messages::EnemyDeathMessage;
 use crate::systems::states::waves::player::components::{Health, Player};
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::*;

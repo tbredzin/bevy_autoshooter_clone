@@ -1,76 +1,25 @@
-use crate::systems::hud::components::{
-    DisplayStatKind, HUDLevelUp, HUDLevelUps, HUDText, StatsDisplayUI, ICON_STATISTICS,
-};
+use crate::systems::hud::components::{DisplayStatKind, StatsPopup, ICON_STATISTICS};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::resources::ActionState;
-use crate::systems::states::waves::player::components::Health;
-use crate::systems::states::waves::player::components::{Player, PlayerStats, StatKind};
+use crate::systems::states::waves::player::components::{Health, Player, PlayerStats, StatKind};
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::color::Color;
 use bevy::ecs::relationship::RelatedSpawnerCommands;
 use bevy::image::TextureAtlas;
-use bevy::prelude::*;
-pub fn update(
-    mut ui_query: Query<&mut Text, With<HUDText>>,
-    wave_manager: Res<WaveManager>,
-    player_query: Query<(&PlayerStats, &Health), With<Player>>,
-) {
-    let Ok((stats, player_health)) = player_query.single() else {
-        return;
-    };
+use bevy::prelude;
+use bevy::prelude::{
+    default, AlignItems, BackgroundColor, BorderColor, BorderRadius, ChildOf, Commands,
+    Entity, FlexDirection, ImageNode, JustifyContent, Node, PositionType, Query, Res, Text,
+    TextColor, TextFont, UiRect, Val, With,
+};
 
-    for mut text in &mut ui_query {
-        **text = format!(
-            "Wave: {} | HP: {:.0}/{:.0} | {}",
-            wave_manager.wave,
-            player_health.value,
-            stats.max_health,
-            format!("Time: {:.1}s", wave_manager.wave_timer.remaining_secs())
-        );
-    }
-}
-
-pub fn update_level_up_indicator(
+pub fn toggle_stats_popup(
     mut commands: Commands,
-    xp_query: Query<&PlayerExperience, With<Player>>,
-    level_ups_query: Query<(Entity, Option<&Children>), With<HUDLevelUps>>,
-    sprites: Res<HUDTextureAtlas>,
-) {
-    let Ok(player_xp) = xp_query.single() else {
-        return;
-    };
-    let Ok((hud_level_ups, children)) = level_ups_query.single() else {
-        return;
-    };
-    match children {
-        None => {
-            if player_xp.new_levels > 1 {
-                commands
-                    .entity(hud_level_ups)
-                    .with_child(HUDLevelUp::render(sprites));
-            }
-        }
-        Some(icons) => {
-            if icons.len() > player_xp.new_levels as usize {
-                commands.entity(*icons.last().unwrap()).despawn();
-            }
-            if icons.len() < player_xp.new_levels as usize {
-                commands
-                    .entity(hud_level_ups)
-                    .with_child(HUDLevelUp::render(sprites));
-            }
-        }
-    };
-}
-
-/// Shows detailed character statistics
-pub fn show_stats_display(
-    mut commands: Commands,
-    stats_query: Query<Entity, With<StatsDisplayUI>>,
+    stats_query: Query<Entity, With<StatsPopup>>,
     actions: Res<ActionState>,
     sprites: Res<HUDTextureAtlas>,
-) -> Result {
+) -> prelude::Result {
     let ui_exists = !stats_query.is_empty();
 
     // Remove UI when show stats is toggled off
@@ -84,9 +33,10 @@ pub fn show_stats_display(
     if ui_exists || !actions.toggle_show_stats {
         return Ok(());
     }
+
     commands
         .spawn((
-            StatsDisplayUI,
+            StatsPopup,
             Node {
                 position_type: PositionType::Absolute,
                 right: Val::Px(20.0),
@@ -122,8 +72,7 @@ pub fn show_stats_display(
     Ok(())
 }
 
-/// Updates the stat values in the display
-pub fn update_stats_display(
+pub fn update_stats_popup(
     mut stat_query: Query<(&mut Text, &DisplayStatKind)>,
     player_query: Query<(&PlayerStats, &Health, &PlayerExperience), With<Player>>,
     wave_manager: Res<WaveManager>,

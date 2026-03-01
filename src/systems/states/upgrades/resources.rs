@@ -4,11 +4,11 @@ use bevy::prelude::Resource;
 use rand::RngExt;
 
 #[derive(Resource)]
-pub struct UpgradePool {
+pub struct UpgradeCardsPool {
     pub upgrades: Vec<UpgradeCard>,
 }
 
-impl Default for UpgradePool {
+impl Default for UpgradeCardsPool {
     fn default() -> Self {
         Self {
             upgrades: vec![
@@ -22,7 +22,7 @@ impl Default for UpgradePool {
     }
 }
 
-impl UpgradePool {
+impl UpgradeCardsPool {
     pub fn generate_upgrades(&self, count: usize) -> Vec<UpgradeCard> {
         let weights: Vec<f32> = self.upgrades.iter().map(|u| u.rarity.get_odds()).collect();
 

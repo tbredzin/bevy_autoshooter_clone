@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy = { version = "0.18.0", features = ["bevy_dev_tools"] }
+bevy = { version = "0.18.0", features = ["bevy_dev_tools", "debug"] }
 rand = "0.10.0"
 
 [features]
+dev = ["bevy/debug"]
 # dev = ["bevy/dynamic_linking"]
 
 # Enable a small amount of optimization in the dev profile.

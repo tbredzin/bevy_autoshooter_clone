@@ -1,4 +1,4 @@
-use crate::resources::{tiles_to_pixels, GAME_AREA};
+use crate::systems::constants::{tiles_to_pixels, GAME_AREA};
 use bevy::prelude::*;
 
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]

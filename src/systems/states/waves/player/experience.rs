@@ -1,5 +1,5 @@
-use crate::messages::EnemyDeathMessage;
-use crate::resources::{ENEMY_BASE_XP, NEXT_LEVEL_RATIO_PERCENT};
+use crate::systems::constants::{ENEMY_BASE_XP, NEXT_LEVEL_RATIO_PERCENT};
+use crate::systems::states::waves::enemy::messages::EnemyDeathMessage;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::components::PlayerStats;
 use bevy::prelude::*;
