@@ -1,5 +1,6 @@
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::states::waves::player::components::StatKind;
+use bevy::color::palettes::css::GOLD;
 use bevy::prelude::*;
 
 pub const ICON_STATISTICS: usize = 13;
@@ -87,7 +88,6 @@ pub struct HUDLevelUps {}
 #[derive(Component)]
 pub struct HUDLevelUp {}
 
-const GOLD: Color = Color::srgb(218.0, 145.0, 0.0);
 impl HUDLevelUp {
     pub fn render(sprites: Res<HUDTextureAtlas>) -> (HUDLevelUp, ImageNode) {
         (
@@ -99,7 +99,7 @@ impl HUDLevelUp {
                     index: ICON_LEVEL,
                 },
             )
-            .with_color(GOLD),
+            .with_color(Color::from(GOLD)),
         )
     }
 }

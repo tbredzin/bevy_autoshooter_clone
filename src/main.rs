@@ -142,12 +142,12 @@ fn main() {
         .add_systems(
             Update,
             (
-                upgrades::systems::handle_update_selection,
-                upgrades::systems::apply_upgrade,
-                upgrades::renderer::animate_card_selection,
-                upgrades::renderer::animate_hold_bars,
-                upgrades::renderer::update_card_key_badges,
-                upgrades::renderer::draw_new_cards,
+                upgrades::systems::update_active_upgrade_card,
+                upgrades::systems::apply_active_upgrade_card,
+                upgrades::animations::animate_upgrade_cards,
+                upgrades::animations::animate_holding_bars,
+                upgrades::renderer::update_card_buttons,
+                upgrades::renderer::redraw_upgrades_selection,
             )
                 .run_if(in_state(GameState::UpgradeSelection)),
         )

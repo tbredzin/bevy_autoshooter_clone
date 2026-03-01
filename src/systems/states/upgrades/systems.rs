@@ -1,5 +1,6 @@
 use crate::systems::game::GameState;
 use crate::systems::input::resources::ActionState;
+use crate::systems::states::upgrades::animations::UpgradeCardAnimation;
 use crate::systems::states::upgrades::components::UpgradeCardState::*;
 use crate::systems::states::upgrades::components::*;
 use crate::systems::states::upgrades::resources::RedrawCardsPool;
@@ -10,7 +11,7 @@ use bevy::prelude::TimerMode::Once;
 use bevy::prelude::*;
 use bevy::time::TimerMode::Repeating;
 
-pub fn handle_update_selection(
+pub fn update_active_upgrade_card(
     actions: Res<ActionState>,
     mut card_query: Query<(&mut UpgradeCard, &mut UpgradeCardAnimation, &CardIndex)>,
     time: Res<Time>,
@@ -66,7 +67,7 @@ pub fn handle_update_selection(
     }
 }
 
-pub fn apply_upgrade(
+pub fn apply_active_upgrade_card(
     mut cards: Query<&mut UpgradeCard>,
     mut player_query: Query<(&mut PlayerStats, &mut PlayerExperience), With<Player>>,
     mut weapon_query: Query<(&mut Weapon, &mut WeaponCooldown)>,
