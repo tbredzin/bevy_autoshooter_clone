@@ -30,24 +30,3 @@ pub fn handle_restart(
 
     next_state.set(GameState::InWave);
 }
-
-/// Hover feedback on the restart button
-pub fn update_restart_button(
-    mut query: Query<(&Interaction, &mut BackgroundColor, &mut BorderColor), With<RestartButton>>,
-) {
-    for (interaction, mut bg, mut border) in &mut query {
-        match interaction {
-            Interaction::Hovered => {
-                *bg = BackgroundColor(Color::srgb(0.2, 0.6, 0.2));
-                *border = BorderColor::all(Color::srgb(0.4, 1.0, 0.4));
-            }
-            Interaction::Pressed => {
-                *bg = BackgroundColor(Color::srgb(0.1, 0.35, 0.1));
-            }
-            Interaction::None => {
-                *bg = BackgroundColor(Color::srgb(0.15, 0.45, 0.15));
-                *border = BorderColor::all(Color::srgb(0.3, 0.8, 0.3));
-            }
-        }
-    }
-}

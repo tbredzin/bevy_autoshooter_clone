@@ -13,13 +13,20 @@ use bevy::time::TimerMode::Repeating;
 
 pub fn update_active_upgrade_card(
     actions: Res<ActionState>,
-    mut card_query: Query<(&mut UpgradeCard, &mut UpgradeCardAnimation, &CardIndex)>,
+    mut card_query: Query<(
+        &mut UpgradeCard,
+        &mut UpgradeCardAnimation,
+        &CardIndex,
+        &Interaction,
+    )>,
     time: Res<Time>,
 ) {
     let mut active_card_index: Option<usize> = None;
 
-    for (mut card, mut animation, index) in card_query.iter_mut() {
-        let is_pressed = actions.card_select.get(index.0).copied().unwrap_or(false);
+    for (mut card, mut animation, index, interaction) in card_query.iter_mut() {
+        let key_pressed = actions.card_select.get(index.0).copied().unwrap_or(false);
+        let mouse_pressed = *interaction == Interaction::Pressed;
+        let is_pressed = key_pressed || mouse_pressed;
 
         match card.state {
             Unselected => {
@@ -59,7 +66,7 @@ pub fn update_active_upgrade_card(
 
     // Reset focus on other cards
     if let Some(active) = active_card_index {
-        for (mut card, _, index) in card_query.iter_mut() {
+        for (mut card, _, index, _) in card_query.iter_mut() {
             if index.0 != active && !matches!(card.state, ToApply | Applied | Selected) {
                 card.state = Unselected;
             }

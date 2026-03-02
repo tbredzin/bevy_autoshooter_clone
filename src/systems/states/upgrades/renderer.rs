@@ -13,6 +13,7 @@ use bevy::prelude::*;
 
 const GREY: Color = Color::srgb(0.55, 0.55, 0.65);
 const BG_CARD: Color = Color::srgb(0.07, 0.07, 0.12);
+const BG_CARD_HOVER: Color = Color::srgb(0.07, 0.18, 0.12);
 const BG_OVERLAY: Color = Color::srgba(0.0, 0.0, 0.0, 0.88);
 const CARD_W: f32 = 230.0;
 const CARD_H: f32 = 340.0;
@@ -179,6 +180,7 @@ fn card_bundle(
         card,
         UpgradeCardAnimation::default(),
         CardIndex(idx),
+        Button,
         ZIndex(1),
         Node {
             width: Val::Px(CARD_W),
@@ -367,4 +369,22 @@ fn card_bundle(
             )
         ],
     )
+}
+
+pub fn update_card_interaction(
+    mut query: Query<(&Interaction, &mut BackgroundColor, &mut BorderColor), With<UpgradeCard>>,
+) {
+    for (interaction, mut bg, mut border) in &mut query {
+        match interaction {
+            Interaction::Hovered => {
+                *bg = BackgroundColor(BG_CARD_HOVER);
+            }
+            Interaction::Pressed => {
+                *bg = BackgroundColor(BG_CARD_HOVER);
+            }
+            Interaction::None => {
+                *bg = BackgroundColor(BG_CARD);
+            }
+        }
+    }
 }

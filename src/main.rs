@@ -9,7 +9,7 @@ use crate::systems::states::waves::resources::TilesTextureAtlas;
 use crate::systems::states::waves::weapons::resources::{
     ColorMeshes, GeometricMeshes, WeaponsLibrary,
 };
-use crate::systems::states::{gameover, waves};
+use crate::systems::states::{gameover, shopping, waves};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -19,7 +19,6 @@ use std::time::Duration;
 use systems::animations::plugins::PlayerAnimationPlugin;
 use systems::constants::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use systems::input::debug;
-use systems::states::shopping;
 use systems::states::waves::enemy::messages;
 use systems::states::waves::resources::WaveManager;
 use systems::states::waves::{camera, collision, enemy, player, weapons};
@@ -152,6 +151,7 @@ fn main() {
                 upgrades::animations::animate_holding_bars,
                 upgrades::renderer::update_card_buttons,
                 upgrades::renderer::redraw_upgrades_selection,
+                upgrades::renderer::update_card_interaction,
             )
                 .run_if(in_state(GameState::UpgradeSelection)),
         )
@@ -166,7 +166,11 @@ fn main() {
         )
         .add_systems(
             Update,
-            shopping::systems::start_next_wave.run_if(in_state(GameState::Shopping)),
+            (
+                shopping::systems::start_next_wave,
+                shopping::renderer::update_start_button_interaction,
+            )
+                .run_if(in_state(GameState::Shopping)),
         )
         // ------------------------  GameOver state --------------------------------- //
         .add_systems(
@@ -181,7 +185,7 @@ fn main() {
             Update,
             (
                 gameover::systems::handle_restart,
-                gameover::systems::update_restart_button,
+                gameover::renderer::update_restart_button_interaction,
             )
                 .run_if(in_state(GameState::GameOver)),
         )
