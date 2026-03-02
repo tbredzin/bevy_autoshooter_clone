@@ -1,7 +1,7 @@
 use crate::systems::constants::WAVE_DURATION;
 use crate::systems::game::GameState;
 use crate::systems::input::resources::ActionState;
-use crate::systems::states::waves::player::components::Health;
+use crate::systems::states::waves::components::Health;
 use crate::systems::states::waves::player::components::{Player, PlayerStats};
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;

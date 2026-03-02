@@ -1,10 +1,12 @@
 use crate::systems::constants::{
-    tiles_to_pixels, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA, SPAWN_RATE,
+    tiles_to_pixels, ENEMY_BASE_DAMAGE, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA,
+    SPAWN_RATE,
 };
 use crate::systems::game::MarkedForDespawn;
+use crate::systems::states::waves::components::{Dying, Health};
 use crate::systems::states::waves::enemy::components::{Enemy, Spawning};
 use crate::systems::states::waves::enemy::messages::EnemyDeathMessage;
-use crate::systems::states::waves::player::components::{Health, Player};
+use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::*;
 use rand::distr::weighted::WeightedIndex;
@@ -14,7 +16,7 @@ use rand::RngExt;
 pub fn update_spawning(
     mut commands: Commands,
     mut wave_manager: ResMut<WaveManager>,
-    player_query: Query<&GlobalTransform, With<Player>>,
+    player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
     time: Res<Time>,
 ) -> Result {
     wave_manager.enemy_spawn_timer.tick(time.delta());
@@ -55,7 +57,9 @@ pub fn update_spawned(
         if spawning.timer.is_finished() {
             commands.entity(entity).remove::<Spawning>();
             commands.entity(entity).insert((
-                Enemy { damage: 10.0 },
+                Enemy {
+                    damage: ENEMY_BASE_DAMAGE,
+                },
                 Health {
                     value: ENEMY_HEALTH,
                 },

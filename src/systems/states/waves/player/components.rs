@@ -1,3 +1,4 @@
+use crate::systems::states::waves::components::Health;
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use bevy::prelude::{Bundle, Component};
 
@@ -99,16 +100,5 @@ impl PlayerStats {
             StatKind::MaxHealth => format!("{:.0}", self.max_health),
             _ => format!("x{:.2}", self.get_value(kind)),
         }
-    }
-}
-
-#[derive(Component)]
-pub struct Health {
-    pub value: f32,
-}
-
-impl Default for Health {
-    fn default() -> Self {
-        Self { value: 100.0 }
     }
 }

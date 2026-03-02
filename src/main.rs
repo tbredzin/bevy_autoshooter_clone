@@ -117,6 +117,7 @@ fn main() {
                 collision::check_player_enemy_collision,
                 weapons::systems::move_bullets,
                 enemy::renderer::render_spawning,
+                waves::systems::dying,
             )
                 .run_if(in_state(GameState::InWave)),
         )

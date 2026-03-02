@@ -18,7 +18,11 @@ impl PlayerAnimationBundle {
         Self {
             animation: Sprite::from_atlas_image(image, TextureAtlas::from(atlas)),
             timer: AnimationTimer::default(),
-            indices: AnimationIndices { first, last },
+            indices: AnimationIndices {
+                first,
+                last,
+                repeated: false,
+            },
             sprite: PlayerSprite::default(),
         }
     }
@@ -41,6 +45,7 @@ impl Default for AnimationTimer {
 pub struct AnimationIndices {
     pub first: usize,
     pub last: usize,
+    pub repeated: bool,
 }
 
 #[derive(Component, Default, Debug)]

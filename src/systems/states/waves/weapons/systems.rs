@@ -1,4 +1,5 @@
 use crate::systems::constants::BULLET_SPEED;
+use crate::systems::states::waves::components::Dying;
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::weapons::components::{
@@ -12,7 +13,7 @@ use bevy::prelude::{Commands, GlobalTransform, Query, Res, Time, Transform, With
 pub fn update_weapon_positioning(
     mut weapon_query: Query<(&mut Transform, &Weapon, &WeaponArea)>,
     enemy_query: Query<&GlobalTransform, With<Enemy>>,
-    player_query: Query<&GlobalTransform, With<Player>>,
+    player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
     time: Res<Time>,
 ) {
     // Get player location
@@ -70,10 +71,14 @@ pub fn move_bullets(mut bullet_query: Query<(&mut Transform, &Bullet)>, time: Re
 
 pub fn auto_shoot(
     mut commands: Commands,
+    player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
     weapons_query: Query<(&GlobalTransform, &mut Weapon, &mut WeaponCooldown)>,
     enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
 ) {
+    if player_query.is_empty() {
+        return;
+    }
     for (weapon_transform, weapon, mut cooldown) in weapons_query {
         cooldown.timer.tick(time.delta());
 

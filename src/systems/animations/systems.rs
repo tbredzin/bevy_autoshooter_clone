@@ -15,6 +15,10 @@ pub fn update_player_sprite(
     >,
 ) {
     for (entity, direction, action, mut sprite) in query.iter_mut() {
+        println!(
+            "change animation -> direction: {:?} /  action: {:?}",
+            direction, action
+        );
         let new_indices = get_animation_indices(action, direction);
         let (new_animation, new_layout) = animation_assets.get_animation_sprite(action);
         sprite.image = new_animation;
@@ -25,16 +29,17 @@ pub fn update_player_sprite(
 
 pub fn animate_player_sprite(
     time: Res<Time>,
-    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
+    query: Single<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
 ) {
-    for (indices, mut timer, mut sprite) in query.iter_mut() {
-        timer.timer.tick(time.delta());
-        if timer.timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
+    let (indices, mut animation, mut sprite) = query.into_inner();
+    animation.timer.tick(time.delta());
+    if animation.timer.just_finished() {
+        if let Some(atlas) = &mut sprite.texture_atlas {
+            if atlas.index < indices.last {
                 atlas.index += 1;
-                if atlas.index >= indices.last {
-                    atlas.index = indices.first
-                }
+            }
+            if indices.repeated && atlas.index == indices.last {
+                atlas.index = indices.first
             }
         }
     }
@@ -53,15 +58,17 @@ pub fn get_animation_indices(state: &PlayerAction, direction: &Direction) -> Ani
         Direction::SOUTHEAST => 5,
         Direction::EAST => 5,
     };
-    // Different states might have different frame counts
-    let frame_count = match state {
-        PlayerAction::IDLE => 8,
-        PlayerAction::WALKING => 8,
-        PlayerAction::DASHING => 8,
-        PlayerAction::DYING => 8,
+    // Different states might have different frame counts and may be repeated
+    let (frame_count, repeated) = match state {
+        PlayerAction::IDLE => (8, true),
+        PlayerAction::WALKING => (8, true),
+        PlayerAction::DASHING => (8, false),
+        PlayerAction::DYING => (8, false),
     };
+
     AnimationIndices {
         first: row * frame_count,
         last: (row * frame_count) + frame_count - 1,
+        repeated,
     }
 }

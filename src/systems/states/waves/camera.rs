@@ -1,10 +1,11 @@
 use crate::systems::constants::{tiles_to_pixels, GAME_AREA};
+use crate::systems::states::waves::components::Dying;
 use crate::systems::states::waves::player::components::Player;
 use bevy::prelude::*;
 
 /// Smoothly follows the player with the camera, clamped to game boundaries
 pub fn camera_follow_player(
-    player_query: Query<&Transform, With<Player>>,
+    player_query: Query<&Transform, (With<Player>, Without<Dying>)>,
     mut camera_query: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
     time: Res<Time>,
 ) {

@@ -1,6 +1,6 @@
 use crate::systems::hud::components::{HUDLevelUp, HUDLevelUps, HUDText, HUDTop};
 use crate::systems::hud::resources::HUDTextureAtlas;
-use crate::systems::states::waves::player::components::Health;
+use crate::systems::states::waves::components::Health;
 use crate::systems::states::waves::player::components::{Player, PlayerStats};
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;

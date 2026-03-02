@@ -1,7 +1,8 @@
 use crate::systems::hud::components::{DisplayStatKind, StatsPopup, ICON_STATISTICS};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::resources::ActionState;
-use crate::systems::states::waves::player::components::{Health, Player, PlayerStats, StatKind};
+use crate::systems::states::waves::components::Health;
+use crate::systems::states::waves::player::components::{Player, PlayerStats, StatKind};
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::color::Color;

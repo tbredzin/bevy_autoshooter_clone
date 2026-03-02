@@ -10,10 +10,11 @@ pub const WINDOW_HEIGHT: f32 = 960.0;
 pub const fn tiles_to_pixels(tiles: f32) -> f32 {
     tiles * TILE_SIZE
 }
-pub const ENEMY_SPEED: f32 = 80.0;
+pub const ENEMY_SPEED: f32 = 160.0;
 pub const ENEMY_HEALTH: f32 = 4.0;
+pub const ENEMY_BASE_DAMAGE: f32 = 20.0;
 pub const BULLET_SPEED: f32 = 500.0;
-pub const WAVE_DURATION: f32 = 10.;
+pub const WAVE_DURATION: f32 = 90.;
 pub const SPAWN_RATE: f32 = 0.2;
 pub const ENEMY_SPAWN_TIME_IN_S: f32 = 2.0;
 pub const ENEMY_BASE_XP: u32 = 2;

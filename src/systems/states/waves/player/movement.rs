@@ -1,10 +1,11 @@
 use crate::systems::constants::GAME_AREA;
 use crate::systems::input::resources::ActionState;
+use crate::systems::states::waves::components::Dying;
 use crate::systems::states::waves::player::components::PlayerStats;
 use crate::systems::states::waves::player::components::{Direction, Player, PlayerAction};
 use crate::systems::states::waves::player::resources::PLAYER_SPEED;
 use bevy::math::Vec2;
-use bevy::prelude::{Query, Res, Time, Transform, With};
+use bevy::prelude::{Query, Res, Time, Transform, With, Without};
 
 pub fn update_position(
     actions: Res<ActionState>,
@@ -15,7 +16,7 @@ pub fn update_position(
             &mut Direction,
             &mut PlayerAction,
         ),
-        With<Player>,
+        (With<Player>, Without<Dying>),
     >,
     time: Res<Time>,
 ) {
