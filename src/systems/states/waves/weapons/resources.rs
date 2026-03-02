@@ -59,16 +59,16 @@ impl Default for WeaponsLibrary {
             weapons: vec![
                 Weapon {
                     kind: MachineGun,
-                    base_cooldown: 0.1,
-                    base_damage: 0.1,
+                    base_cooldown: 0.10,
+                    base_damage: 2.0,
                     base_range: tiles_to_pixels(10.0),
                     damage_multiplier: 1.0,
                     fire_rate_multiplier: 1.0,
                     range_multiplier: 1.0,
                 },
                 Weapon {
-                    base_cooldown: 1.0,
-                    base_damage: 5.0,
+                    base_cooldown: 0.75,
+                    base_damage: 7.0,
                     base_range: tiles_to_pixels(12.0),
                     kind: Pistol,
                     damage_multiplier: 1.0,
@@ -76,8 +76,8 @@ impl Default for WeaponsLibrary {
                     range_multiplier: 1.0,
                 },
                 Weapon {
-                    base_cooldown: 1.0,
-                    base_damage: 100.0,
+                    base_cooldown: 1.20,
+                    base_damage: 18.0,
                     base_range: tiles_to_pixels(8.0),
                     kind: Shotgun,
                     damage_multiplier: 1.0,
