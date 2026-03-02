@@ -1,15 +1,15 @@
 mod systems;
 
-use crate::systems::game::GameState;
+use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::plugin::InputPlugin;
 use crate::systems::input::resources::{GamepadAsset, KeyboardAsset};
 use crate::systems::states::upgrades::resources::{RedrawCardsPool, UpgradeCardsPool};
-use crate::systems::states::waves;
 use crate::systems::states::waves::resources::TilesTextureAtlas;
 use crate::systems::states::waves::weapons::resources::{
     ColorMeshes, GeometricMeshes, WeaponsLibrary,
 };
+use crate::systems::states::{gameover, waves};
 use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
@@ -74,6 +74,7 @@ fn main() {
         .init_resource::<GeometricMeshes>()
         .init_resource::<ColorMeshes>()
         .init_resource::<WeaponsLibrary>()
+        .init_resource::<GameOverStats>()
         // ------------------------------------------------------------------------- //
         .add_systems(
             PreUpdate,
@@ -99,6 +100,7 @@ fn main() {
             (
                 waves::renderer::despawn_background,
                 waves::renderer::despawn_entities,
+                hud::top::despawn_hud,
             ),
         )
         .add_systems(
@@ -117,7 +119,8 @@ fn main() {
                 collision::check_player_enemy_collision,
                 weapons::systems::move_bullets,
                 enemy::renderer::render_spawning,
-                waves::systems::dying,
+                waves::systems::check_game_is_over,
+                animations::systems::animate_game_over,
             )
                 .run_if(in_state(GameState::InWave)),
         )
@@ -155,7 +158,7 @@ fn main() {
         // ------------------------  Shopping state -------------------------------- //
         .add_systems(
             OnEnter(GameState::Shopping),
-            (hud::top::despawn_hud, shopping::renderer::spawn_shopping),
+            shopping::renderer::spawn_shopping,
         )
         .add_systems(
             OnExit(GameState::Shopping),
@@ -165,7 +168,23 @@ fn main() {
             Update,
             shopping::systems::start_next_wave.run_if(in_state(GameState::Shopping)),
         )
-        // ------------------------------------------------------------------------- //
+        // ------------------------  GameOver state --------------------------------- //
+        .add_systems(
+            OnEnter(GameState::GameOver),
+            gameover::renderer::spawn_game_over_ui,
+        )
+        .add_systems(
+            OnExit(GameState::GameOver),
+            gameover::renderer::despawn_game_over_ui,
+        )
+        .add_systems(
+            Update,
+            (
+                gameover::systems::handle_restart,
+                gameover::systems::update_restart_button,
+            )
+                .run_if(in_state(GameState::GameOver)),
+        )
         .add_message::<messages::EnemyDeathMessage>()
         .run();
 }

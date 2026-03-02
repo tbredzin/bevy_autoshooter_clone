@@ -41,18 +41,19 @@ pub fn despawn_hud(
 pub fn update(
     mut ui_query: Query<&mut Text, With<HUDText>>,
     wave_manager: Res<WaveManager>,
-    player_query: Query<(&PlayerStats, &Health), With<Player>>,
+    player_query: Query<(&PlayerStats, &PlayerExperience, &Health), With<Player>>,
 ) {
-    let Ok((stats, player_health)) = player_query.single() else {
+    let Ok((stats, player_xp, player_health)) = player_query.single() else {
         return;
     };
 
     for mut text in &mut ui_query {
         **text = format!(
-            "Wave: {} | HP: {:.0}/{:.0} | {}",
+            "Wave: {} | HP: {:.0}/{:.0} | Level: {} | {}",
             wave_manager.wave,
             player_health.value,
             stats.max_health,
+            player_xp.level,
             format!("Time: {:.1}s", wave_manager.wave_timer.remaining_secs())
         );
     }

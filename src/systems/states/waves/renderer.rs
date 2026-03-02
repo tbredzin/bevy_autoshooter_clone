@@ -2,7 +2,7 @@ use crate::systems::animations::components::{PlayerAnimationBundle, ShadowSprite
 use crate::systems::animations::resources::AnimationAssets;
 use crate::systems::constants::{tiles_to_pixels, TILES_X, TILES_Y};
 use crate::systems::game::MarkedForDespawn;
-use crate::systems::states::waves::components::LevelBackground;
+use crate::systems::states::waves::components::{LevelBackground, LevelOverlay};
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::{Player, PlayerBundle};
 use crate::systems::states::waves::resources::TilesTextureAtlas;
@@ -36,6 +36,17 @@ pub fn spawn_background(mut commands: Commands, atlas: Res<TilesTextureAtlas>) {
                     },
                 ),
                 Transform::from_xyz(pos_x, pos_y, -10.0),
+            ));
+            commands.spawn((
+                LevelOverlay,
+                Node {
+                    position_type: PositionType::Absolute,
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
+                ZIndex(50),
             ));
         }
     }
@@ -102,8 +113,16 @@ pub fn spawn_entities(
     Ok(())
 }
 
-pub fn despawn_entities(mut commands: Commands, entities: Query<Entity, With<Enemy>>) {
+pub fn despawn_entities(
+    mut commands: Commands,
+    entities: Query<Entity, With<Enemy>>,
+    vignette: Query<Entity, With<LevelOverlay>>,
+) {
     for entity in entities {
+        commands.entity(entity).insert(MarkedForDespawn);
+    }
+    for entity in &vignette {
+        // ← ADD block
         commands.entity(entity).insert(MarkedForDespawn);
     }
 }

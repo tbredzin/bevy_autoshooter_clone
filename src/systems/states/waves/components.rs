@@ -3,6 +3,9 @@ use bevy::prelude::Component;
 pub struct LevelBackground {}
 
 #[derive(Component)]
+pub struct LevelOverlay;
+
+#[derive(Component)]
 pub struct Health {
     pub value: f32,
 }

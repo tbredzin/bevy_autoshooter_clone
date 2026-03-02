@@ -2,10 +2,9 @@ use bevy::prelude::*;
 
 #[derive(Bundle)]
 pub struct PlayerAnimationBundle {
-    pub animation: Sprite,
-    pub timer: AnimationTimer,
-    pub indices: AnimationIndices,
-    pub sprite: PlayerSprite,
+    pub sprite: Sprite,
+    pub animation: Animation,
+    pub player: PlayerSprite,
 }
 
 impl PlayerAnimationBundle {
@@ -16,33 +15,21 @@ impl PlayerAnimationBundle {
         last: usize,
     ) -> Self {
         Self {
-            animation: Sprite::from_atlas_image(image, TextureAtlas::from(atlas)),
-            timer: AnimationTimer::default(),
-            indices: AnimationIndices {
+            player: PlayerSprite::default(),
+            sprite: Sprite::from_atlas_image(image, TextureAtlas::from(atlas)),
+            animation: Animation {
+                timer: Timer::from_seconds(0.12, TimerMode::Repeating),
                 first,
                 last,
-                repeated: false,
+                repeated: true,
             },
-            sprite: PlayerSprite::default(),
-        }
-    }
-}
-
-#[derive(Component)]
-pub struct AnimationTimer {
-    pub timer: Timer,
-}
-
-impl Default for AnimationTimer {
-    fn default() -> Self {
-        Self {
-            timer: Timer::from_seconds(0.1, TimerMode::Repeating),
         }
     }
 }
 
 #[derive(Component, Debug)]
-pub struct AnimationIndices {
+pub struct Animation {
+    pub timer: Timer,
     pub first: usize,
     pub last: usize,
     pub repeated: bool,

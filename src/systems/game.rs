@@ -7,6 +7,13 @@ pub enum GameState {
     InWave,
     UpgradeSelection,
     Shopping,
+    GameOver,
+}
+#[derive(Resource, Default)]
+pub struct GameOverStats {
+    pub wave_reached: u32,
+    pub level_reached: u32,
+    pub experience_total: u32,
 }
 
 #[derive(Component)]

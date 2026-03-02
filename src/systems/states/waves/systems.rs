@@ -1,8 +1,10 @@
-use crate::systems::game::GameState;
+use crate::systems::animations::components::{Animation, PlayerSprite};
+use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::states::waves::components::Health;
 use crate::systems::states::waves::player::components::{Player, PlayerAction};
+use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
-use bevy::prelude::{NextState, Query, Res, ResMut, Time, With};
+use bevy::prelude::*;
 
 pub fn reset_wave_timers(mut wave_manager: ResMut<WaveManager>) {
     wave_manager.wave_timer.reset();
@@ -20,10 +22,37 @@ pub fn update_wave_timer(
     }
 }
 
-pub fn dying(mut player_query: Query<(&Health, &mut PlayerAction), With<Player>>) {
-    for (health, mut action) in player_query.iter_mut() {
-        if health.value <= 0. && *action != PlayerAction::DYING {
-            *action = PlayerAction::DYING;
-        }
+pub fn check_game_is_over(
+    sprite_query: Query<(&Animation, &Sprite), With<PlayerSprite>>,
+    mut player_query: Query<(&Health, &mut PlayerAction, &PlayerExperience), With<Player>>,
+    wave_manager: Res<WaveManager>,
+    mut game_over_stats: ResMut<GameOverStats>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    let Ok((health, mut action, xp)) = player_query.single_mut() else {
+        return;
+    };
+
+    if health.value > 0.0 {
+        return;
+    }
+
+    if *action != PlayerAction::DYING {
+        *action = PlayerAction::DYING;
+    }
+
+    let Ok((indices, sprite)) = sprite_query.single() else {
+        return;
+    };
+    let Some(atlas) = &sprite.texture_atlas else {
+        return;
+    };
+
+    // Dying animation is non-repeating; once we hit the last frame, go to GameOver
+    if atlas.index >= indices.last {
+        game_over_stats.wave_reached = wave_manager.wave;
+        game_over_stats.level_reached = xp.level;
+        game_over_stats.experience_total = xp.value;
+        next_state.set(GameState::GameOver);
     }
 }

@@ -13,4 +13,10 @@ OnExit(UpgradeSelection)  → despawn upgrade UI
 OnEnter(Shopping)    → spawn "Start Next Wave" button
   Update(Shopping)   → start_next_wave watches for input → writes NextState(InWave)
 OnExit(Shopping)     → despawn button
+
+
+
+OnEnter(Gameover)    → spawn Summary + "Start Next Wave" button
+  Update(Gameover)   → start_next_wave watches for input → writes NextState(InWave)
+OnExit(Gameover)     → despawn button
 ```
