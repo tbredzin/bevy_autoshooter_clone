@@ -1,11 +1,9 @@
-use crate::systems::constants::{
-    tiles_to_pixels, ENEMY_BASE_DAMAGE, ENEMY_HEALTH, ENEMY_SPAWN_TIME_IN_S, ENEMY_SPEED, GAME_AREA,
-    SPAWN_RATE,
-};
-use crate::systems::game::MarkedForDespawn;
+use crate::systems::constants::{tiles_to_pixels, ENEMY_SPAWN_TIME_IN_S, GAME_AREA, SPAWN_RATE};
 use crate::systems::states::waves::components::{Dying, Health};
-use crate::systems::states::waves::enemy::components::{Enemy, Spawning};
-use crate::systems::states::waves::enemy::messages::EnemyDeathMessage;
+use crate::systems::states::waves::enemy::components::{
+    BossAttack, Enemy, RangedAttack, Spawning, Splitter,
+};
+use crate::systems::states::waves::enemy::kinds::EnemyKind;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::*;
@@ -13,7 +11,7 @@ use rand::distr::weighted::WeightedIndex;
 use rand::distr::Distribution;
 use rand::RngExt;
 
-pub fn update_spawning(
+pub fn prepare_spawn_enemies(
     mut commands: Commands,
     mut wave_manager: ResMut<WaveManager>,
     player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
@@ -28,79 +26,125 @@ pub fn update_spawning(
         return Ok(());
     };
 
-    let spawn_pos = generate_spawn_position(player_transform.translation().truncate())?;
+    let wave = wave_manager.wave;
+    let kind = EnemyKind::random_for_wave(wave);
+    let spawn_pos = generate_spawn_position(player_transform.translation().truncate());
 
-    // Spawn warning indicator
     commands.spawn((
         Transform::from_translation(spawn_pos.extend(0.0)),
         Spawning {
             timer: Timer::from_seconds(ENEMY_SPAWN_TIME_IN_S, TimerMode::Once),
+            kind,
         },
     ));
 
-    // Adjust spawn rate based on waves (faster spawning each waves)
-    let base_rate = SPAWN_RATE / wave_manager.wave as f32;
+    let base_rate = SPAWN_RATE / wave as f32;
     wave_manager
         .enemy_spawn_timer
         .set_duration(std::time::Duration::from_secs_f32(base_rate.max(0.01)));
     Ok(())
 }
 
-pub fn update_spawned(
+pub fn spawn_enemies(
     mut commands: Commands,
     mut pre_spawn_query: Query<(Entity, &mut Spawning)>,
     time: Res<Time>,
+    wave_manager: Res<WaveManager>,
 ) {
     for (entity, mut spawning) in &mut pre_spawn_query {
         spawning.timer.tick(time.delta());
+        if !spawning.timer.is_finished() {
+            continue;
+        }
 
-        if spawning.timer.is_finished() {
-            commands.entity(entity).remove::<Spawning>();
-            commands.entity(entity).insert((
-                Enemy {
-                    damage: ENEMY_BASE_DAMAGE,
-                },
-                Health {
-                    value: ENEMY_HEALTH,
-                },
-            ));
+        let kind = spawning.kind;
+        let wave = wave_manager.wave;
+        let stats = kind.stats(wave);
+
+        let mut entity_cmd = commands.entity(entity);
+        entity_cmd.remove::<Spawning>();
+        entity_cmd.insert((
+            Enemy {
+                damage: stats.contact_damage,
+                speed: stats.speed,
+                kind,
+                xp_reward: stats.xp_reward,
+            },
+            Health {
+                value: stats.health,
+            },
+        ));
+
+        match kind {
+            EnemyKind::Splitter => {
+                entity_cmd.insert(Splitter { split_count: 4 });
+            }
+            EnemyKind::Ranged => {
+                entity_cmd.insert(RangedAttack {
+                    timer: Timer::from_seconds(2.5, TimerMode::Repeating),
+                    preferred_distance: 300.0,
+                    projectile_speed: 200.0,
+                    projectile_damage: stats.contact_damage * 2.5,
+                });
+            }
+            _ => {}
         }
     }
 }
-
-pub fn update_move(
-    mut enemy_query: Query<&mut Transform, With<Enemy>>,
-    player_query: Query<&GlobalTransform, (With<Player>, Without<Enemy>)>,
-    time: Res<Time>,
+pub fn spawn_boss(
+    mut commands: Commands,
+    wave_manager: Res<WaveManager>,
+    player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
 ) {
+    let wave = wave_manager.wave;
+
+    let kind = if wave % 5 == 0 {
+        EnemyKind::Boss
+    } else if wave % 3 == 0 {
+        EnemyKind::MiniBoss
+    } else {
+        return;
+    };
+
     let Ok(player_transform) = player_query.single() else {
         return;
     };
 
-    let player_pos = player_transform.translation();
+    let spawn_pos = generate_spawn_position(player_transform.translation().truncate());
+    let stats = kind.stats(wave);
 
-    for mut enemy_transform in &mut enemy_query {
-        let direction = (player_pos - enemy_transform.translation).normalize();
-        enemy_transform.translation += direction * ENEMY_SPEED * time.delta_secs();
-    }
-}
+    let mut entity_cmd = commands.spawn((
+        Transform::from_translation(spawn_pos.extend(0.0)),
+        Enemy {
+            damage: stats.contact_damage,
+            speed: stats.speed,
+            kind,
+            xp_reward: stats.xp_reward,
+        },
+        Health {
+            value: stats.health,
+        },
+    ));
 
-pub fn check_if_dead(
-    mut commands: Commands,
-    mut message_writer: MessageWriter<EnemyDeathMessage>,
-    query: Query<(Entity, &Health), With<Enemy>>,
-) {
-    for (entity, health) in query.iter() {
-        if health.value <= 0.0 {
-            message_writer.write(EnemyDeathMessage(entity));
-            commands.entity(entity).insert(MarkedForDespawn);
+    match kind {
+        EnemyKind::Boss => {
+            entity_cmd.insert(BossAttack::default());
         }
+        EnemyKind::MiniBoss => {
+            entity_cmd.insert(RangedAttack {
+                timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+                preferred_distance: 350.0,
+                projectile_speed: 230.0,
+                projectile_damage: stats.contact_damage * 0.7,
+            });
+        }
+        _ => {}
     }
 }
 
 // helper functions
 
-fn generate_spawn_position(player_pos: Vec2) -> Result<Vec2> {
+fn generate_spawn_position(player_pos: Vec2) -> Vec2 {
     const MIN_SPAWN_DISTANCE: f32 = tiles_to_pixels(3.0);
     const EDGE_MARGIN: f32 = tiles_to_pixels(0.5);
 
@@ -147,10 +191,12 @@ fn generate_spawn_position(player_pos: Vec2) -> Result<Vec2> {
         .collect();
 
     let mut rng = rand::rng();
-    let chosen_region = regions[WeightedIndex::new(&regions_weight)?.sample(&mut rng)];
+    let chosen_region = regions[WeightedIndex::new(&regions_weight)
+        .unwrap()
+        .sample(&mut rng)];
 
-    Ok(Vec2::new(
+    Vec2::new(
         rng.random_range(chosen_region.min.x..chosen_region.max.x),
         rng.random_range(chosen_region.min.y..chosen_region.max.y),
-    ))
+    )
 }

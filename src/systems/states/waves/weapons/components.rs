@@ -18,6 +18,7 @@ pub struct Weapon {
     pub base_cooldown: f32,
     pub base_range: f32,
     pub kind: WeaponKind,
+    pub bullet_speed: f32,
     // Calculated from PlayerStats:
     pub damage_multiplier: f32,
     pub fire_rate_multiplier: f32,
@@ -53,4 +54,5 @@ pub struct Bullet {
     pub direction: Vec2,
     pub damage: f32,
     pub kind: WeaponKind,
+    pub speed: f32,
 }

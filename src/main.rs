@@ -92,6 +92,7 @@ fn main() {
                 waves::renderer::spawn_background,
                 waves::renderer::spawn_entities,
                 waves::systems::reset_wave_timers,
+                enemy::spawner::spawn_boss.after(waves::renderer::spawn_entities),
             ),
         )
         .add_systems(
@@ -108,10 +109,10 @@ fn main() {
                 waves::systems::update_wave_timer,
                 player::movement::update_position,
                 player::experience::handle_enemy_death,
-                enemy::engine::update_spawning,
-                enemy::engine::update_spawned,
-                enemy::engine::update_move,
-                enemy::engine::check_if_dead,
+                enemy::spawner::prepare_spawn_enemies,
+                enemy::spawner::spawn_enemies,
+                enemy::movement::move_to_player,
+                enemy::systems::check_if_dead,
                 weapons::systems::update_weapon_positioning,
                 weapons::systems::auto_shoot,
                 collision::check_bullet_enemy_collision,
@@ -120,6 +121,9 @@ fn main() {
                 enemy::renderer::render_spawning,
                 waves::systems::check_game_is_over,
                 animations::systems::animate_game_over,
+                enemy::shooter::update_enemy_shoot,
+                enemy::shooter::update_boss_shoot,
+                enemy::systems::handle_splitter_death,
             )
                 .run_if(in_state(GameState::InWave)),
         )

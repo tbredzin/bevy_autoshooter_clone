@@ -372,9 +372,9 @@ fn card_bundle(
 }
 
 pub fn update_card_interaction(
-    mut query: Query<(&Interaction, &mut BackgroundColor, &mut BorderColor), With<UpgradeCard>>,
+    mut query: Query<(&Interaction, &mut BackgroundColor), With<UpgradeCard>>,
 ) {
-    for (interaction, mut bg, mut border) in &mut query {
+    for (interaction, mut bg) in &mut query {
         match interaction {
             Interaction::Hovered => {
                 *bg = BackgroundColor(BG_CARD_HOVER);

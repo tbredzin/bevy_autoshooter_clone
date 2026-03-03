@@ -1,6 +1,5 @@
-use crate::systems::states::waves::enemy::components::Spawning;
+use crate::systems::states::waves::enemy::components::{Enemy, Spawning};
 use bevy::asset::Assets;
-use bevy::color::Color;
 use bevy::ecs::lifecycle::HookContext;
 use bevy::ecs::world::DeferredWorld;
 use bevy::math::Vec3;
@@ -18,15 +17,15 @@ pub fn render_spawning(mut warning_query: Query<(&mut Spawning, &mut Transform)>
 }
 
 pub fn on_enemy_spawning(mut world: DeferredWorld, context: HookContext) {
-    // Create mesh and material
+    let enemy = world.get::<Spawning>(context.entity).unwrap();
+    let visual = enemy.kind.visual();
     let mesh_handle = {
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        meshes.add(Circle::new(30.0))
+        meshes.add(Circle::new(visual.radius * 2.0))
     };
-
     let material_handle = {
         let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
-        materials.add(Color::srgba(1.0, 0.0, 0.0, 0.3))
+        materials.add(visual.color.with_alpha(0.35))
     };
 
     world
@@ -36,15 +35,15 @@ pub fn on_enemy_spawning(mut world: DeferredWorld, context: HookContext) {
 }
 
 pub fn on_enemy_spawned(mut world: DeferredWorld, context: HookContext) {
-    // Create mesh and material
+    let enemy = world.get::<Enemy>(context.entity).unwrap();
+    let visual = enemy.kind.visual();
     let mesh_handle = {
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        meshes.add(Circle::new(15.0))
+        meshes.add(Circle::new(visual.radius))
     };
-
     let material_handle = {
         let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
-        materials.add(Color::srgb(1.0, 0.3, 0.3))
+        materials.add(visual.color)
     };
 
     world

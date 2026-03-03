@@ -107,6 +107,7 @@ pub fn auto_shoot(
             )),
             Bullet {
                 direction,
+                speed: weapon.bullet_speed,
                 damage: weapon.base_damage * weapon.damage_multiplier,
                 kind: weapon.kind,
             },

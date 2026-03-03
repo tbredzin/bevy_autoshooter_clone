@@ -1,4 +1,4 @@
-use crate::systems::constants::{ENEMY_BASE_XP, NEXT_LEVEL_RATIO_PERCENT};
+use crate::systems::constants::NEXT_LEVEL_RATIO_PERCENT;
 use crate::systems::states::waves::enemy::messages::EnemyDeathMessage;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::components::PlayerStats;
@@ -24,13 +24,13 @@ pub fn handle_enemy_death(
     mut msg_reader: MessageReader<EnemyDeathMessage>,
     mut player_query: Query<(&mut PlayerExperience, &mut PlayerStats), With<Player>>,
 ) {
-    for _event in msg_reader.read() {
-        // Handle the enemy death, e.g., update score or play sound
+    for event in msg_reader.read() {
         let Ok((experience, stats)) = &mut player_query.single_mut() else {
             return;
         };
-        experience.value += ENEMY_BASE_XP;
+
         // Level up check
+        experience.value += event.xp_reward;
         if experience.value >= experience.level * NEXT_LEVEL_RATIO_PERCENT {
             experience.level += 1;
             experience.new_levels += 1;

@@ -6,7 +6,7 @@ use crate::systems::states::waves::components::{LevelBackground, LevelOverlay};
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::{Player, PlayerBundle};
 use crate::systems::states::waves::resources::TilesTextureAtlas;
-use crate::systems::states::waves::weapons::components::{WeaponArea, WeaponCooldown};
+use crate::systems::states::waves::weapons::components::{Bullet, WeaponArea, WeaponCooldown};
 use crate::systems::states::waves::weapons::resources::WeaponsLibrary;
 use bevy::camera::Camera2d;
 use bevy::image::TextureAtlas;
@@ -89,9 +89,9 @@ pub fn spawn_entities(
             ))
             .id();
 
-        // Give all weapons available to player
+        // // Give all weapons available to player
         let total_weapons = weapons_resource.weapons.len();
-        let orbit_radius = 12.0 * weapons_resource.weapons.len() as f32; // Distance from player center
+        let orbit_radius = (12.0 * weapons_resource.weapons.len() as f32).max(30.0); // Distance from player center
         let sector_arc = consts::TAU / (total_weapons as f32) * 0.8; // 80% of full sector
 
         for (index, weapon) in weapons_resource.weapons.iter().enumerate() {
@@ -116,13 +116,16 @@ pub fn spawn_entities(
 pub fn despawn_entities(
     mut commands: Commands,
     entities: Query<Entity, With<Enemy>>,
-    vignette: Query<Entity, With<LevelOverlay>>,
+    overlay: Query<Entity, With<LevelOverlay>>,
+    projectiles: Query<Entity, With<Bullet>>,
 ) {
     for entity in entities {
         commands.entity(entity).insert(MarkedForDespawn);
     }
-    for entity in &vignette {
-        // ← ADD block
+    for entity in &overlay {
+        commands.entity(entity).insert(MarkedForDespawn);
+    }
+    for entity in &projectiles {
         commands.entity(entity).insert(MarkedForDespawn);
     }
 }
