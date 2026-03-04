@@ -18,3 +18,25 @@ impl Default for Health {
 
 #[derive(Component)]
 pub struct Dying {}
+
+#[derive(Component, PartialEq, Clone, Copy, Debug, Default, Hash, Eq)]
+pub enum Action {
+    #[default]
+    IDLE,
+    WALKING,
+    DASHING,
+    DYING,
+}
+
+#[derive(Component, Clone, Copy, Debug, Eq, Default, PartialEq, Hash)]
+pub enum Direction {
+    #[default]
+    EAST,
+    NORTH,
+    NORTHEAST,
+    NORTHWEST,
+    SOUTH,
+    SOUTHEAST,
+    SOUTHWEST,
+    WEST,
+}

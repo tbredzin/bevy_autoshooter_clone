@@ -1,14 +1,20 @@
-use crate::systems::animations::components::{PlayerAnimationBundle, ShadowSprite};
-use crate::systems::animations::resources::AnimationAssets;
+use crate::systems::animations::animator::SpriteAnimator;
 use crate::systems::constants::{tiles_to_pixels, TILES_X, TILES_Y};
 use crate::systems::game::MarkedForDespawn;
-use crate::systems::states::waves::components::{LevelBackground, LevelOverlay};
+use crate::systems::states::waves::components::Action::IDLE;
+use crate::systems::states::waves::components::Direction::EAST;
+use crate::systems::states::waves::components::{
+    Action, Direction, Dying, LevelBackground, LevelOverlay,
+};
 use crate::systems::states::waves::enemy::components::Enemy;
+use crate::systems::states::waves::enemy::resources::EnemyAnimations;
 use crate::systems::states::waves::player::components::{Player, PlayerBundle};
+use crate::systems::states::waves::player::resources::PlayerAnimations;
 use crate::systems::states::waves::resources::TilesTextureAtlas;
 use crate::systems::states::waves::weapons::components::{Bullet, WeaponArea, WeaponCooldown};
 use crate::systems::states::waves::weapons::resources::WeaponsLibrary;
 use bevy::camera::Camera2d;
+use bevy::ecs::relationship::RelationshipSourceCollection;
 use bevy::image::TextureAtlas;
 use bevy::math::Vec3;
 use bevy::prelude::TimerMode::Repeating;
@@ -62,29 +68,32 @@ pub fn spawn_entities(
     mut commands: Commands,
     camera: Option<Single<&Camera2d>>,
     player: Option<Single<&Player>>,
-    animations: Res<AnimationAssets>,
+    player_animations: Res<PlayerAnimations>,
     weapons_resource: Res<WeaponsLibrary>,
+    mut atlas: ResMut<Assets<TextureAtlasLayout>>,
+    assets: Res<AssetServer>,
 ) -> Result {
     // Camera
     if camera.is_none() {
         commands.spawn((Camera2d, Msaa::Sample4));
     }
     if player.is_none() {
-        let position = Vec3::ZERO;
         let player_entity = commands
             .spawn((
                 PlayerBundle::default(),
-                PlayerAnimationBundle::new(
-                    animations.idle_texture.clone(),
-                    animations.idle_layout.clone(),
-                    0,
-                    7,
-                ),
-                Transform::from_translation(position).with_scale(Vec3::splat(2.0)),
+                Sprite {
+                    image: PlayerAnimations::get_image_handle(assets.as_ref(), IDLE),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: PlayerAnimations::get_layout(atlas.as_mut(), IDLE),
+                        index: 0,
+                    }),
+                    ..default()
+                },
+                SpriteAnimator::new(player_animations.get(IDLE, EAST).unwrap()),
+                Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(2.0)),
                 children![(
-                    Sprite::from_image(animations.shadow_texture.clone()),
-                    Transform::from_translation(position - Vec3::new(0.0, 2.0, -1.0)), // Slightly below player
-                    ShadowSprite,
+                    Sprite::from_image(player_animations.shadow_texture.clone()),
+                    Transform::from_xyz(0.0, -2.0, -1.0),
                 )],
             ))
             .id();
@@ -117,7 +126,7 @@ pub fn despawn_entities(
     mut commands: Commands,
     entities: Query<Entity, With<Enemy>>,
     overlay: Query<Entity, With<LevelOverlay>>,
-    projectiles: Query<Entity, With<Bullet>>,
+    bullets: Query<Entity, With<Bullet>>,
 ) {
     for entity in entities {
         commands.entity(entity).insert(MarkedForDespawn);
@@ -125,7 +134,60 @@ pub fn despawn_entities(
     for entity in &overlay {
         commands.entity(entity).insert(MarkedForDespawn);
     }
-    for entity in &projectiles {
+    for entity in &bullets {
         commands.entity(entity).insert(MarkedForDespawn);
+    }
+}
+
+const DYING_OVERLAY_TARGET_ALPHA: f32 = 0.80;
+const DYING_OVERLAY_FADE_SPEED_PER_SEC: f32 = 1.4;
+
+pub fn animate_game_over(
+    time: Res<Time>,
+    player: Single<Entity, (With<Dying>, With<Player>)>,
+    mut background: Query<&mut BackgroundColor, With<LevelOverlay>>,
+    mut camera_query: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
+) {
+    if player.is_empty() {
+        return;
+    }
+    if let Ok(mut camera_transform) = camera_query.single_mut() {
+        camera_transform.translation.y += 1.;
+    }
+
+    for mut bg in background.iter_mut() {
+        let alpha = bg.0.alpha();
+        if alpha < DYING_OVERLAY_TARGET_ALPHA {
+            bg.0.set_alpha(
+                (alpha + time.delta_secs() * DYING_OVERLAY_FADE_SPEED_PER_SEC)
+                    .min(DYING_OVERLAY_TARGET_ALPHA),
+            );
+        }
+        return;
+    }
+}
+
+pub fn animate_player(
+    player_anims: Res<PlayerAnimations>,
+    mut query: Query<
+        (&Action, &Direction, &mut SpriteAnimator),
+        (With<Player>, Or<(Changed<Action>, Changed<Direction>)>),
+    >,
+) {
+    for (action, direction, mut animator) in &mut query {
+        if let Some(handle) = player_anims.get(*action, *direction) {
+            animator.switch(handle);
+        }
+    }
+}
+
+pub fn animate_enemy(
+    enemy_animations: Res<EnemyAnimations>,
+    mut query: Query<(&Direction, &Enemy, &mut SpriteAnimator), Changed<Direction>>,
+) {
+    for (direction, enemy, mut animator) in &mut query {
+        if let Some(handle) = enemy_animations.get(enemy.kind, *direction) {
+            animator.switch(handle);
+        }
     }
 }

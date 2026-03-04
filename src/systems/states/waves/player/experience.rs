@@ -28,6 +28,7 @@ pub fn handle_enemy_death(
         let Ok((experience, stats)) = &mut player_query.single_mut() else {
             return;
         };
+        println!("{:?}", event);
 
         // Level up check
         experience.value += event.xp_reward;

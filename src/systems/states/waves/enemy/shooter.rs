@@ -1,6 +1,8 @@
+use crate::systems::states::waves::components::Direction;
 use crate::systems::states::waves::enemy::components::{
     BossAttack, BossPhase, Enemy, Hostile, RangedAttack,
 };
+use crate::systems::states::waves::enemy::movement::get_direction;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::weapons::components::{Bullet, WeaponKind};
 use bevy::asset::Assets;
@@ -14,7 +16,7 @@ use bevy::prelude::{
 
 pub fn update_enemy_shoot(
     mut commands: Commands,
-    mut attacker_query: Query<(&GlobalTransform, &Enemy, &mut RangedAttack)>,
+    mut attacker_query: Query<(&GlobalTransform, &mut Direction, &Enemy, &mut RangedAttack)>,
     player_query: Query<&GlobalTransform, (With<Player>, Without<Enemy>)>,
     time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -25,13 +27,14 @@ pub fn update_enemy_shoot(
     };
     let player_pos = player_transform.translation();
 
-    for (transform, enemy, mut ranged) in &mut attacker_query {
+    for (transform, mut direction, enemy, mut ranged) in &mut attacker_query {
         let enemy_pos = transform.translation();
         let to_player = player_pos - enemy_pos;
 
         if to_player.length() > ranged.preferred_distance * 1.5 {
             continue;
         }
+        *direction = get_direction(to_player.truncate());
 
         ranged.timer.tick(time.delta());
         if !ranged.timer.just_finished() {
@@ -58,7 +61,7 @@ pub fn update_enemy_shoot(
 
 pub fn update_boss_shoot(
     mut commands: Commands,
-    mut boss_query: Query<(&mut Transform, &Enemy, &mut BossAttack)>,
+    mut boss_query: Query<(&mut Transform, &mut Direction, &Enemy, &mut BossAttack)>,
     player_query: Query<&GlobalTransform, (With<Player>, Without<Enemy>)>,
     time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -69,9 +72,10 @@ pub fn update_boss_shoot(
     };
     let player_pos = player_transform.translation();
 
-    for (mut transform, enemy, mut boss) in &mut boss_query {
+    for (mut transform, mut direction, enemy, mut boss) in &mut boss_query {
         let to_player = (player_pos - transform.translation).truncate();
         boss.phase_timer.tick(time.delta());
+        *direction = get_direction(to_player);
 
         match boss.phase {
             // ── Chasing: slow approach; after timer, lock a charge direction

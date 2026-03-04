@@ -1,42 +1,18 @@
-use bevy::prelude::*;
-
-#[derive(Bundle)]
-pub struct PlayerAnimationBundle {
-    pub sprite: Sprite,
-    pub animation: Animation,
-    pub player: PlayerSprite,
+use std::time::Duration;
+//NEW
+#[derive(Clone, Copy)]
+pub enum AnimationDuration {
+    /// Total time for one full pass through all frames.
+    PerCycle(Duration),
+    /// Fixed time each individual frame is held.
+    PerFrame(Duration),
 }
 
-impl PlayerAnimationBundle {
-    pub fn new(
-        image: Handle<Image>,
-        atlas: Handle<TextureAtlasLayout>,
-        first: usize,
-        last: usize,
-    ) -> Self {
-        Self {
-            player: PlayerSprite::default(),
-            sprite: Sprite::from_atlas_image(image, TextureAtlas::from(atlas)),
-            animation: Animation {
-                timer: Timer::from_seconds(0.12, TimerMode::Repeating),
-                first,
-                last,
-                repeated: true,
-            },
+impl AnimationDuration {
+    pub(crate) fn frame_interval(&self, frame_count: usize) -> Duration {
+        match self {
+            AnimationDuration::PerFrame(d) => *d,
+            AnimationDuration::PerCycle(d) => *d / frame_count as u32,
         }
     }
 }
-
-#[derive(Component, Debug)]
-pub struct Animation {
-    pub timer: Timer,
-    pub first: usize,
-    pub last: usize,
-    pub repeated: bool,
-}
-
-#[derive(Component, Default, Debug)]
-pub struct PlayerSprite {}
-
-#[derive(Component)]
-pub struct ShadowSprite;

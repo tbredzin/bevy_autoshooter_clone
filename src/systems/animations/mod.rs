@@ -1,4 +1,5 @@
+pub mod animation;
+pub mod animator;
 pub mod components;
-pub mod plugins;
-pub mod resources;
-pub mod systems;
+pub mod messages;
+pub mod plugin;

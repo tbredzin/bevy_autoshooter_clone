@@ -1,8 +1,8 @@
 use crate::systems::constants::GAME_AREA;
 use crate::systems::input::resources::ActionState;
-use crate::systems::states::waves::components::Dying;
+use crate::systems::states::waves::components::{Action, Direction, Dying};
+use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::components::PlayerStats;
-use crate::systems::states::waves::player::components::{Direction, Player, PlayerAction};
 use crate::systems::states::waves::player::resources::PLAYER_SPEED;
 use bevy::math::Vec2;
 use bevy::prelude::{Query, Res, Time, Transform, With, Without};
@@ -10,12 +10,7 @@ use bevy::prelude::{Query, Res, Time, Transform, With, Without};
 pub fn update_position(
     actions: Res<ActionState>,
     mut player_query: Query<
-        (
-            &mut Transform,
-            &PlayerStats,
-            &mut Direction,
-            &mut PlayerAction,
-        ),
+        (&mut Transform, &PlayerStats, &mut Direction, &mut Action),
         (With<Player>, Without<Dying>),
     >,
     time: Res<Time>,
@@ -38,11 +33,11 @@ pub fn update_position(
     if direction != Vec2::ZERO {
         transform.translation +=
             direction.extend(0.0) * PLAYER_SPEED * stats.speed_multiplier * time.delta_secs();
-        if *action != PlayerAction::WALKING {
-            *action = PlayerAction::WALKING;
+        if *action != Action::WALKING {
+            *action = Action::WALKING;
         }
-    } else if *action != PlayerAction::IDLE {
-        *action = PlayerAction::IDLE;
+    } else if *action != Action::IDLE {
+        *action = Action::IDLE;
     }
 
     // Clamp to game area

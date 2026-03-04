@@ -1,7 +1,7 @@
-use crate::systems::animations::components::{Animation, PlayerSprite};
+use crate::systems::animations::messages::AnimationEnded;
 use crate::systems::game::{GameOverStats, GameState};
-use crate::systems::states::waves::components::Health;
-use crate::systems::states::waves::player::components::{Player, PlayerAction};
+use crate::systems::states::waves::components::{Action, Health};
+use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::*;
@@ -23,13 +23,13 @@ pub fn update_wave_timer(
 }
 
 pub fn check_game_is_over(
-    sprite_query: Query<(&Animation, &Sprite), With<PlayerSprite>>,
-    mut player_query: Query<(&Health, &mut PlayerAction, &PlayerExperience), With<Player>>,
+    mut anim_ended_reader: MessageReader<AnimationEnded>,
+    mut player_query: Query<(Entity, &Health, &mut Action, &PlayerExperience), With<Player>>,
     wave_manager: Res<WaveManager>,
     mut game_over_stats: ResMut<GameOverStats>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
-    let Ok((health, mut action, xp)) = player_query.single_mut() else {
+    let Ok((player_entity, health, mut action, xp)) = player_query.single_mut() else {
         return;
     };
 
@@ -37,22 +37,19 @@ pub fn check_game_is_over(
         return;
     }
 
-    if *action != PlayerAction::DYING {
-        *action = PlayerAction::DYING;
+    // First frame health hits zero: trigger the dying clip and wait.
+    if *action != Action::DYING {
+        *action = Action::DYING;
+        return;
     }
 
-    let Ok((indices, sprite)) = sprite_query.single() else {
-        return;
-    };
-    let Some(atlas) = &sprite.texture_atlas else {
-        return;
-    };
-
-    // Dying animation is non-repeating; once we hit the last frame, go to GameOver
-    if atlas.index >= indices.last {
-        game_over_stats.wave_reached = wave_manager.wave;
-        game_over_stats.level_reached = xp.level;
-        game_over_stats.experience_total = xp.value;
-        next_state.set(GameState::GameOver);
+    // Once the non-repeating death clip finishes, AnimationEnded fires.
+    for ev in anim_ended_reader.read() {
+        if ev.entity == player_entity {
+            game_over_stats.wave_reached = wave_manager.wave;
+            game_over_stats.level_reached = xp.level;
+            game_over_stats.experience_total = xp.value;
+            next_state.set(GameState::GameOver);
+        }
     }
 }

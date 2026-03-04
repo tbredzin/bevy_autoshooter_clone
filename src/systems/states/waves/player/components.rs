@@ -1,4 +1,4 @@
-use crate::systems::states::waves::components::Health;
+use crate::systems::states::waves::components::{Action, Direction, Health};
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use bevy::prelude::{Bundle, Component};
 
@@ -12,7 +12,7 @@ pub struct PlayerBundle {
     pub health: Health,
     pub xp: PlayerExperience,
     pub stats: PlayerStats,
-    pub action: PlayerAction,
+    pub action: Action,
     pub direction: Direction,
 }
 
@@ -23,32 +23,10 @@ impl Default for PlayerBundle {
             health: Default::default(),
             xp: Default::default(),
             stats: Default::default(),
-            action: PlayerAction::IDLE,
+            action: Action::IDLE,
             direction: Direction::EAST,
         }
     }
-}
-
-#[derive(Component, PartialEq, Clone, Copy, Debug, Default)]
-pub enum PlayerAction {
-    #[default]
-    IDLE,
-    WALKING,
-    DASHING,
-    DYING,
-}
-
-#[derive(Component, Clone, Copy, Debug, PartialEq, Default)]
-pub enum Direction {
-    #[default]
-    EAST,
-    NORTH,
-    NORTHEAST,
-    NORTHWEST,
-    SOUTH,
-    SOUTHEAST,
-    SOUTHWEST,
-    WEST,
 }
 
 /// Core player statistics that affect gameplay

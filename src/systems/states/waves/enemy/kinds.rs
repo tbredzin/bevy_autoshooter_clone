@@ -1,5 +1,6 @@
 use crate::systems::constants::{ENEMY_BASE_DAMAGE, ENEMY_BASE_XP, ENEMY_HEALTH, ENEMY_SPEED};
-use bevy::color::{Color, Srgba};
+use bevy::color::Color;
+use bevy::prelude::Srgba;
 use rand::RngExt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]

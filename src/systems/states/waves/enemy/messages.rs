@@ -1,7 +1,7 @@
 use crate::systems::states::waves::enemy::kinds::EnemyKind;
 use bevy::prelude::*;
 
-#[derive(Message)]
+#[derive(Message, Debug)]
 pub struct EnemyDeathMessage {
     pub entity: Entity,
     pub kind: EnemyKind,

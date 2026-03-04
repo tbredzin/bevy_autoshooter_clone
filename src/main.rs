@@ -1,10 +1,12 @@
 mod systems;
 
+use crate::systems::animations::plugin::SpriteAnimationPlugin;
 use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::plugin::InputPlugin;
 use crate::systems::input::resources::{GamepadAsset, KeyboardAsset};
 use crate::systems::states::upgrades::resources::{RedrawCardsPool, UpgradeCardsPool};
+use crate::systems::states::waves::enemy::resources::EnemyAnimations;
 use crate::systems::states::waves::resources::TilesTextureAtlas;
 use crate::systems::states::waves::weapons::resources::{
     ColorMeshes, GeometricMeshes, WeaponsLibrary,
@@ -16,10 +18,10 @@ use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
 use states::upgrades;
 use std::time::Duration;
-use systems::animations::plugins::PlayerAnimationPlugin;
 use systems::constants::{WINDOW_HEIGHT, WINDOW_WIDTH};
 use systems::input::debug;
 use systems::states::waves::enemy::messages;
+use systems::states::waves::player::resources::PlayerAnimations;
 use systems::states::waves::resources::WaveManager;
 use systems::states::waves::{camera, collision, enemy, player, weapons};
 use systems::*;
@@ -56,7 +58,7 @@ fn main() {
                 frame_time_graph_config: Default::default(),
             },
         })
-        .add_plugins((PlayerAnimationPlugin, InputPlugin))
+        .add_plugins((SpriteAnimationPlugin, InputPlugin))
         // ----------------------------- Resources ---------------------------------- //
         .init_state::<GameState>()
         .insert_resource(WinitSettings {
@@ -74,6 +76,8 @@ fn main() {
         .init_resource::<ColorMeshes>()
         .init_resource::<WeaponsLibrary>()
         .init_resource::<GameOverStats>()
+        .init_resource::<PlayerAnimations>()
+        .init_resource::<EnemyAnimations>()
         // ------------------------------------------------------------------------- //
         .add_systems(
             PreUpdate,
@@ -120,10 +124,12 @@ fn main() {
                 weapons::systems::move_bullets,
                 enemy::renderer::render_spawning,
                 waves::systems::check_game_is_over,
-                animations::systems::animate_game_over,
+                waves::renderer::animate_game_over,
                 enemy::shooter::update_enemy_shoot,
                 enemy::shooter::update_boss_shoot,
                 enemy::systems::handle_splitter_death,
+                waves::renderer::animate_player,
+                waves::renderer::animate_enemy,
             )
                 .run_if(in_state(GameState::InWave)),
         )

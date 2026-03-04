@@ -3,6 +3,7 @@ pub mod kinds;
 pub mod messages;
 pub mod movement;
 pub mod renderer;
+pub mod resources;
 pub mod shooter;
 pub mod spawner;
 pub mod systems;

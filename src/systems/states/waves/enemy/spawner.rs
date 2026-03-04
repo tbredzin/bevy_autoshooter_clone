@@ -1,5 +1,5 @@
 use crate::systems::constants::{tiles_to_pixels, ENEMY_SPAWN_TIME_IN_S, GAME_AREA, SPAWN_RATE};
-use crate::systems::states::waves::components::{Dying, Health};
+use crate::systems::states::waves::components::{Direction, Dying, Health};
 use crate::systems::states::waves::enemy::components::{
     BossAttack, Enemy, RangedAttack, Spawning, Splitter,
 };
@@ -56,7 +56,6 @@ pub fn spawn_enemies(
         if !spawning.timer.is_finished() {
             continue;
         }
-
         let kind = spawning.kind;
         let wave = wave_manager.wave;
         let stats = kind.stats(wave);
@@ -70,6 +69,7 @@ pub fn spawn_enemies(
                 kind,
                 xp_reward: stats.xp_reward,
             },
+            Direction::EAST,
             Health {
                 value: stats.health,
             },
@@ -115,6 +115,7 @@ pub fn spawn_boss(
 
     let mut entity_cmd = commands.spawn((
         Transform::from_translation(spawn_pos.extend(0.0)),
+        Direction::EAST,
         Enemy {
             damage: stats.contact_damage,
             speed: stats.speed,

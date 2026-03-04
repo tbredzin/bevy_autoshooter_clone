@@ -1,4 +1,7 @@
+use crate::systems::animations::animator::SpriteAnimator;
+use crate::systems::states::waves::components::Direction::EAST;
 use crate::systems::states::waves::enemy::components::{Enemy, Spawning};
+use crate::systems::states::waves::enemy::resources::EnemyAnimations;
 use bevy::asset::Assets;
 use bevy::ecs::lifecycle::HookContext;
 use bevy::ecs::world::DeferredWorld;
@@ -35,19 +38,41 @@ pub fn on_enemy_spawning(mut world: DeferredWorld, context: HookContext) {
 }
 
 pub fn on_enemy_spawned(mut world: DeferredWorld, context: HookContext) {
-    let enemy = world.get::<Enemy>(context.entity).unwrap();
-    let visual = enemy.kind.visual();
-    let mesh_handle = {
-        let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        meshes.add(Circle::new(visual.radius))
+    let kind = { world.get::<Enemy>(context.entity).map(|e| e.kind).unwrap() };
+    let layout = {
+        EnemyAnimations::get_layout(
+            world.resource_mut::<Assets<TextureAtlasLayout>>().as_mut(),
+            kind,
+        )
     };
-    let material_handle = {
-        let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
-        materials.add(visual.color)
+    let image = { EnemyAnimations::get_image_handle(world.resource::<AssetServer>(), kind) };
+    let shadow = { world.resource::<EnemyAnimations>().shadow_texture.clone() };
+    let animation = {
+        world
+            .resource::<EnemyAnimations>()
+            .get(kind, EAST)
+            .expect(format!("{:?}/EAST must be registered", kind).as_str())
     };
 
+    world.commands().entity(context.entity).remove::<Mesh2d>();
     world
         .commands()
         .entity(context.entity)
-        .insert((Mesh2d(mesh_handle), MeshMaterial2d(material_handle)));
+        .remove::<MeshMaterial2d<ColorMaterial>>();
+
+    let mut transform = { world.get_mut::<Transform>(context.entity).unwrap() };
+    *transform = transform.with_scale(Vec3::splat(2.0));
+
+    world.commands().entity(context.entity).insert((
+        Sprite {
+            image,
+            texture_atlas: Some(TextureAtlas { layout, index: 0 }),
+            ..default()
+        },
+        SpriteAnimator::new(animation),
+        children![(
+            Sprite::from_image(shadow),
+            Transform::from_xyz(-1.0, -6.0, 0.0),
+        )],
+    ));
 }
