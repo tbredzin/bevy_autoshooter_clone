@@ -1,5 +1,6 @@
 use crate::systems::animations::messages::AnimationEnded;
-use crate::systems::game::{GameOverStats, GameState};
+use crate::systems::game::{GameOverStats, GameState, MarkedForDespawn};
+use crate::systems::states::waves::components::Action::DYING;
 use crate::systems::states::waves::components::{Action, Health};
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
@@ -15,8 +16,16 @@ pub fn reset_wave_timers(mut wave_manager: ResMut<WaveManager>) {
 pub fn update_wave_timer(
     mut wave_manager: ResMut<WaveManager>,
     mut next_state: ResMut<NextState<GameState>>,
+    mut player_query: Query<&Action, With<Player>>,
     time: Res<Time>,
 ) {
+    let Ok((action)) = player_query.single_mut() else {
+        return;
+    };
+    if *action == DYING {
+        return;
+    }
+
     wave_manager.wave_timer.tick(time.delta());
     if wave_manager.wave_timer.just_finished() {
         next_state.set(GameState::UpgradeSelection);
@@ -40,9 +49,11 @@ pub fn y_sort_player(mut query: Query<&mut Transform, With<Player>>) {
 pub fn check_game_is_over(
     mut anim_ended_reader: MessageReader<AnimationEnded>,
     mut player_query: Query<(Entity, &Health, &mut Action, &PlayerExperience), With<Player>>,
+    enemy_query: Query<Entity, With<Enemy>>,
     wave_manager: Res<WaveManager>,
     mut game_over_stats: ResMut<GameOverStats>,
     mut next_state: ResMut<NextState<GameState>>,
+    mut commands: Commands,
 ) {
     let Ok((player_entity, health, mut action, xp)) = player_query.single_mut() else {
         return;
@@ -53,9 +64,12 @@ pub fn check_game_is_over(
     }
 
     // First frame health hits zero: trigger the dying clip and wait.
-    if *action != Action::DYING {
-        *action = Action::DYING;
+    if *action != DYING {
+        *action = DYING;
         return;
+    }
+    for e in enemy_query {
+        commands.entity(e).insert(MarkedForDespawn);
     }
 
     // Once the non-repeating death clip finishes, AnimationEnded fires.
