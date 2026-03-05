@@ -47,6 +47,11 @@ impl FromWorld for ColorMeshes {
         }
     }
 }
+impl ColorMeshes {
+    pub fn get_color(materials: &mut Assets<ColorMaterial>, srgba: Srgba) -> Handle<ColorMaterial> {
+        materials.add(Color::from(srgba))
+    }
+}
 
 #[derive(Resource)]
 pub struct WeaponsLibrary {

@@ -97,12 +97,13 @@ pub fn auto_shoot(
 
         // Compute direction to enemy
         let direction = (nearest_enemy - weapon_pos).truncate().normalize();
+        let spawn_offset = direction * 30.0; // push bullet forward by 20px
 
         // Spawn a new bullet toward that direction
         commands.spawn((
             Transform::from_translation(weapon_pos).with_translation(Vec3::new(
-                weapon_pos.x,
-                weapon_pos.y,
+                weapon_pos.x + spawn_offset.x,
+                weapon_pos.y + spawn_offset.y,
                 1.0,
             )),
             Bullet {
