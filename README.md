@@ -29,9 +29,7 @@
 
 ## Feature Roadmap (Priority Order)
 
-### 1. Upgrade System v1 ⭐ HIGH PRIORITY
-
-**Status**: In Development
+### 1. Upgrade System v1
 
 - [x] Upgrade card UI component
 - [x] 4 random upgrade choices between waves
@@ -39,15 +37,15 @@
     - Weapon stat improvements (damage, fire rate, range)
     - Player stat improvements (speed, max HP)
 
-### 2. Enemy Variety & AI ⭐ HIGH PRIORITY
+### 2. Enemy Variety
 
-- [ ] Fast enemy type (150% speed, 50% HP)
-- [ ] Tank enemy type (200% HP, 50% speed, 2x damage)
-- [ ] Splitter enemy (splits into 2-3 smaller enemies on death)
-- [ ] Ranged enemy (shoots projectiles from distance)
-- [ ] Boss enemy every 5 waves (unique mechanics)
-- [ ] Enemy visual differentiation (different colors/shapes)
-- [ ] Mini-boss spawns at wave 3, 6, 9, etc.
+- [x] Fast enemy type (150% speed, 50% HP)
+- [x] Tank enemy type (200% HP, 50% speed, 2x damage)
+- [x] Splitter enemy (splits into 2-3 smaller enemies on death)
+- [x] Ranged enemy (shoots projectiles from distance)
+- [x] Boss enemy every 5 waves (unique mechanics)
+- [x] Enemy visual differentiation (different colors/shapes)
+- [x] Mini-boss spawns at wave 3, 6, 9, etc.
 
 ### 3. Visual Polish
 
@@ -58,7 +56,7 @@
 - [ ] Damage numbers (floating text on hit)
 - [ ] Health bars above enemies
 - [x] Enemy spawn animations (fade-in or pop)
-- [ ] Sprite animations for player/enemies
+- [x] Sprite animations for player/enemies
 - [ ] Better weapon visuals (actual gun sprites)
 
 ### 4. Power-ups & Pickups
@@ -77,11 +75,11 @@
 
 Current: Only spawn rate increases
 
-- [ ] Scale enemy HP per wave: `ENEMY_HEALTH * (1.0 + wave * 0.15)`
-- [ ] Scale enemy speed per wave: `ENEMY_SPEED * (1.0 + wave * 0.05)`
-- [ ] Scale enemy damage per wave: `damage * (1.0 + wave * 0.10)`
+- [x] Scale enemy HP per wave: `ENEMY_HEALTH * (1.0 + wave * 0.15)`
+- [x] Scale enemy speed per wave: `ENEMY_SPEED * (1.0 + wave * 0.05)`
+- [x] Scale enemy damage per wave: `damage * (1.0 + wave * 0.10)`
 - [ ] Increase max concurrent enemies
-- [ ] Introduce new enemy types at specific waves
+- [x] Introduce new enemy types at specific waves
 - [ ] Boss waves with special mechanics
 
 ### 6. Combat Enhancements
@@ -93,16 +91,7 @@ Current: Only spawn rate increases
 - [ ] Critical hit system (% chance for 2x damage)
 - [ ] Status effects (slow, burn, poison)
 
-### 7. Arena & Environment
-
-- [ ] Procedural obstacle generation
-- [ ] Destructible props
-- [ ] Environmental hazards (lava pools, spikes)
-- [ ] Multiple arena types/biomes
-- [ ] Minimap showing enemy positions
-- [ ] Arena boundary visual improvements
-
-### 8. Audio Integration
+### 7. Audio Integration
 
 - [ ] Background music system
 - [ ] Dynamic music intensity based on enemy count
@@ -113,7 +102,7 @@ Current: Only spawn rate increases
 - [ ] Power-up collection sound
 - [ ] Level-up fanfare
 
-### 9. Meta Progression
+### 8. Meta Progression
 
 - [ ] Persistent save system (using bevy_save or serde)
 - [ ] Currency system (coins from runs)
@@ -123,24 +112,21 @@ Current: Only spawn rate increases
     - New characters with unique stats
 - [ ] Achievement system
 - [ ] Stat tracking (total kills, highest wave, etc.)
-- [ ] Leaderboard integration
 
-### 10. UI/UX Improvements
+### 9. UI/UX Improvements
 
-- [ ] Main menu screen
+- [x] Main menu screen
 - [ ] Pause menu (ESC key)
-- [ ] Death/game over screen with stats
+- [x] Death/game over screen with stats
 - [ ] Settings menu (volume, controls)
-- [ ] Better wave start/end transitions
-- [ ] Tutorial/help overlay
+- [x] Better wave start/end transitions
 - [ ] Keybind customization
 
-### 11. Advanced Features
+### 10. Advanced Features
 
 - [ ] Multiple character classes
 - [ ] Weapon synergy system
 - [ ] Challenge modifiers (harder runs with better rewards)
-- [ ] Daily challenge mode
 - [ ] Co-op multiplayer (local or online)
 - [ ] Weapon crafting/fusion system
 
@@ -149,9 +135,7 @@ Current: Only spawn rate increases
 ### Code Quality
 
 - [ ] Improve error handling (reduce unwraps)
-- [ ] Add documentation comments
-- [ ] Refactor large systems into smaller functions
-- [ ] Implement state machine for game states (Menu, Playing, Paused, GameOver)
+- [x] Implement state machine for game states (Menu, Playing, Paused, GameOver)
 
 ### Performance
 
@@ -196,20 +180,12 @@ Current: Only spawn rate increases
 - [ ] No object pooling (spawning creates new entities constantly)
 - [ ] Camera clamping could be smoother at boundaries
 - [ ] Wave timer doesn't account for remaining enemies
-- [ ] No state management (just WaveState enum)
 
 ## Reference Links
 
 - Repository: https://github.com/tbredzin/bevy_autoshooter_clone
-- Bevy 0.17 Docs: https://docs.rs/bevy/0.17.0/bevy/
+- Bevy 0.18 Docs: https://docs.rs/bevy/0.17.0/bevy/
 - Similar Games: Brotato, Vampire Survivors, 20 Minutes Till Dawn
 
-## Next Session TODO
-
-2. 🚧 Implement upgrade selection UI
-3. Test upgrade system thoroughly
-4. Plan enemy variety implementation
-
 ---
-*Last Updated: 2025-11-16*
 *Current Focus: Upgrade Selection UI System*
