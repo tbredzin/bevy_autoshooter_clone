@@ -4,6 +4,7 @@ use bevy::prelude::*;
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum GameState {
     #[default]
+    MainMenu,
     InWave,
     UpgradeSelection,
     Shopping,
@@ -45,4 +46,8 @@ pub fn despawn_marked_entities(
     for entity in &query {
         commands.entity(entity).despawn();
     }
+}
+
+pub fn spawn_camera(mut commands: Commands) {
+    commands.spawn((Camera2d, Msaa::Sample4));
 }

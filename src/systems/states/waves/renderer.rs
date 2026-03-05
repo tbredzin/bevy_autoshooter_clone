@@ -66,17 +66,12 @@ pub fn despawn_background(
 
 pub fn spawn_entities(
     mut commands: Commands,
-    camera: Option<Single<&Camera2d>>,
     player: Option<Single<&Player>>,
     player_animations: Res<PlayerAnimations>,
     weapons_resource: Res<WeaponsLibrary>,
     mut atlas: ResMut<Assets<TextureAtlasLayout>>,
     assets: Res<AssetServer>,
 ) -> Result {
-    // Camera
-    if camera.is_none() {
-        commands.spawn((Camera2d, Msaa::Sample4));
-    }
     if player.is_none() {
         let player_entity = commands
             .spawn((

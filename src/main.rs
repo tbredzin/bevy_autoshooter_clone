@@ -5,6 +5,7 @@ use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::plugin::InputPlugin;
 use crate::systems::input::resources::{GamepadAsset, KeyboardAsset};
+use crate::systems::states::menu::plugin::MainMenuPlugin;
 use crate::systems::states::upgrades::resources::{RedrawCardsPool, UpgradeCardsPool};
 use crate::systems::states::waves::enemy::resources::EnemyAnimations;
 use crate::systems::states::waves::resources::TilesTextureAtlas;
@@ -58,7 +59,7 @@ fn main() {
                 frame_time_graph_config: Default::default(),
             },
         })
-        .add_plugins((SpriteAnimationPlugin, InputPlugin))
+        .add_plugins((SpriteAnimationPlugin, InputPlugin, MainMenuPlugin))
         // ----------------------------- Resources ---------------------------------- //
         .init_state::<GameState>()
         .insert_resource(WinitSettings {
@@ -88,6 +89,7 @@ fn main() {
                 hud::top::update_level_up_indicator,
             ),
         )
+        .add_systems(Startup, game::spawn_camera)
         // ------------------------  In Wave state -------------------------------- //
         .add_systems(
             OnEnter(GameState::InWave),

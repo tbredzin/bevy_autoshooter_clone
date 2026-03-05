@@ -14,7 +14,7 @@ pub struct WaveManager {
 impl Default for WaveManager {
     fn default() -> Self {
         Self {
-            wave: 3,
+            wave: 1,
             wave_timer: Timer::from_seconds(WAVE_DURATION, TimerMode::Once),
             enemy_spawn_timer: Timer::from_seconds(SPAWN_RATE, TimerMode::Repeating),
         }
