@@ -17,26 +17,28 @@ pub fn move_to_player(
         return;
     };
 
-    let player_pos = player_transform.translation();
+    let player_pos = player_transform.translation().truncate();
 
     // Basic
     for (mut transform, mut direction, enemy) in &mut enemy_query {
-        let new_direction = (player_pos - transform.translation).normalize_or_zero();
-        *direction = get_direction(new_direction.truncate());
-        transform.translation += new_direction * enemy.speed * time.delta_secs();
+        let current_pos = transform.translation.truncate();
+        let new_direction = (player_pos - current_pos).normalize_or_zero();
+        *direction = get_direction(new_direction);
+        transform.translation += (new_direction * enemy.speed * time.delta_secs()).extend(1.0);
     }
 
     // Ranged
     for (mut transform, enemy, ranged) in &mut ranged_enemy_query {
-        let to_player = player_pos - transform.translation;
+        let to_player = player_pos - transform.translation.truncate();
         let distance = to_player.length();
         let direction = to_player.normalize_or_zero();
 
         let preferred = ranged.preferred_distance;
         if distance > preferred + 60.0 {
-            transform.translation += direction * enemy.speed * time.delta_secs();
+            transform.translation += (direction * enemy.speed * time.delta_secs()).extend(1.0);
         } else if distance < preferred - 60.0 {
-            transform.translation -= direction * enemy.speed * 0.7 * time.delta_secs();
+            transform.translation -=
+                (direction * enemy.speed * 0.7 * time.delta_secs()).extend(1.0);
         }
     }
 }

@@ -1,4 +1,7 @@
 use crate::systems::constants::{ENEMY_BASE_DAMAGE, ENEMY_BASE_XP, ENEMY_HEALTH, ENEMY_SPEED};
+use crate::systems::states::waves::enemy::kinds::EnemyKind::{
+    Basic, Boss, Fast, MiniBoss, Ranged, SmallSplitter, Splitter, Tank,
+};
 use bevy::color::Color;
 use bevy::prelude::Srgba;
 use rand::RngExt;
@@ -29,6 +32,20 @@ pub struct EnemyStats {
 }
 
 impl EnemyKind {
+    pub fn iterator() -> impl Iterator<Item = EnemyKind> {
+        [
+            Basic,
+            Fast,
+            Tank,
+            Splitter,
+            SmallSplitter,
+            Ranged,
+            MiniBoss,
+            Boss,
+        ]
+        .iter()
+        .copied()
+    }
     pub fn visual(&self) -> EnemyVisual {
         let (radius, color) = match self {
             EnemyKind::Basic => (15.0, Color::srgb(1.0, 0.3, 0.3)),
@@ -46,14 +63,14 @@ impl EnemyKind {
     pub fn stats(&self, wave: u32) -> EnemyStats {
         let wave_scale = 1.0 + wave as f32 * 0.12;
         let (health_ratio, speed_ratio, damage_ratio, xp_ratio) = match self {
-            EnemyKind::Basic => (1.0, 1.0, 1.0, 1),
-            EnemyKind::Fast => (0.5, 1.5, 0.6, 1),
-            EnemyKind::Tank => (2.0, 0.5, 2.0, 3),
-            EnemyKind::Splitter => (1.2, 0.85, 0.8, 2),
-            EnemyKind::SmallSplitter => (0.3, 1.3, 0.4, 1),
-            EnemyKind::Ranged => (0.8, 0.6, 0.3, 2), // low contact dmg, shoots instead
-            EnemyKind::MiniBoss => (8.0, 0.65, 3.0, 10),
-            EnemyKind::Boss => (25.0, 0.4, 5.0, 50),
+            Basic => (1.0, 1.0, 1.0, 1),
+            Fast => (0.5, 1.5, 0.6, 1),
+            Tank => (2.0, 0.5, 2.0, 3),
+            Splitter => (1.2, 0.85, 0.8, 2),
+            SmallSplitter => (0.3, 1.3, 0.4, 1),
+            Ranged => (0.8, 0.6, 0.3, 2), // low contact dmg, shoots instead
+            MiniBoss => (8.0, 0.65, 3.0, 10),
+            Boss => (25.0, 0.4, 5.0, 50),
         };
         EnemyStats {
             health: ENEMY_HEALTH * health_ratio * wave_scale,
@@ -65,18 +82,18 @@ impl EnemyKind {
 
     /// Weighted random pick for the regular spawn timer based on wave
     pub fn random_for_wave(wave: u32) -> Self {
-        let mut pool: Vec<(EnemyKind, f32)> = vec![(EnemyKind::Basic, 60.0)];
+        let mut pool: Vec<(EnemyKind, f32)> = vec![(Basic, 60.0)];
         if wave >= 2 {
-            pool.push((EnemyKind::Fast, 25.0));
+            pool.push((Fast, 25.0));
         }
         if wave >= 3 {
-            pool.push((EnemyKind::Tank, 15.0));
+            pool.push((Tank, 15.0));
         }
         if wave >= 4 {
-            pool.push((EnemyKind::Splitter, 15.0));
+            pool.push((Splitter, 15.0));
         }
         if wave >= 5 {
-            pool.push((EnemyKind::Ranged, 20.0));
+            pool.push((Ranged, 20.0));
         }
 
         let total: f32 = pool.iter().map(|(_, w)| w).sum();
@@ -88,6 +105,6 @@ impl EnemyKind {
                 return *kind;
             }
         }
-        EnemyKind::Basic
+        Basic
     }
 }

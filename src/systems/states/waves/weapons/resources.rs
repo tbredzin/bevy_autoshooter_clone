@@ -65,7 +65,7 @@ impl Default for WeaponsLibrary {
                 Weapon {
                     kind: MachineGun,
                     base_cooldown: 0.10,
-                    base_damage: 2.0,
+                    base_damage: 5.0,
                     base_range: tiles_to_pixels(10.0),
                     damage_multiplier: 1.0,
                     fire_rate_multiplier: 1.0,

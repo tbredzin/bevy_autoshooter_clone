@@ -13,7 +13,6 @@ use crate::systems::states::waves::weapons::resources::{
     ColorMeshes, GeometricMeshes, WeaponsLibrary,
 };
 use crate::systems::states::{gameover, shopping, waves};
-use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
@@ -47,18 +46,18 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()), // Remove texture bleeding/seam
         )
-        .add_plugins(FpsOverlayPlugin {
-            config: FpsOverlayConfig {
-                text_config: TextFont {
-                    font_size: 20.0,
-                    ..default()
-                },
-                text_color: Color::srgb(0.0, 1.0, 0.0),
-                enabled: true,
-                refresh_interval: Default::default(),
-                frame_time_graph_config: Default::default(),
-            },
-        })
+        // .add_plugins(FpsOverlayPlugin {
+        //     config: FpsOverlayConfig {
+        //         text_config: TextFont {
+        //             font_size: 20.0,
+        //             ..default()
+        //         },
+        //         text_color: Color::srgb(0.0, 1.0, 0.0),
+        //         enabled: true,
+        //         refresh_interval: Default::default(),
+        //         frame_time_graph_config: Default::default(),
+        //     },
+        // })
         .add_plugins((SpriteAnimationPlugin, InputPlugin, MainMenuPlugin))
         // ----------------------------- Resources ---------------------------------- //
         .init_state::<GameState>()
@@ -87,6 +86,7 @@ fn main() {
                 game::despawn_marked_entities,
                 debug::debug_button_pressed,
                 hud::top::update_level_up_indicator,
+                hud::top::animate_hud_border,
             ),
         )
         .add_systems(Startup, game::spawn_camera)
@@ -121,9 +121,9 @@ fn main() {
                 enemy::systems::check_if_dead,
                 weapons::systems::update_weapon_positioning,
                 weapons::systems::auto_shoot,
-                collision::check_bullet_enemy_collision,
-                collision::check_player_enemy_collision,
                 weapons::systems::move_bullets,
+                collision::check_bullet_enemy_collision.after(weapons::systems::move_bullets),
+                collision::check_player_enemy_collision.after(weapons::systems::move_bullets),
                 enemy::renderer::render_spawning,
                 waves::systems::check_game_is_over,
                 waves::renderer::animate_game_over,
@@ -142,6 +142,8 @@ fn main() {
                 hud::stats::toggle_stats_popup,
                 hud::stats::update_stats_popup,
                 camera::camera_follow_player,
+                waves::systems::y_sort_enemies,
+                waves::systems::y_sort_player,
             )
                 .run_if(in_state(GameState::InWave)),
         )

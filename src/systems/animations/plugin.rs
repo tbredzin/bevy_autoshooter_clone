@@ -29,17 +29,17 @@ fn tick_sprite_animators(
             animator.finished = false;
             animator.frame_timer = Timer::new(anim.frame_interval, TimerMode::Repeating);
 
-            sprite.image = anim.image.clone();
-            sprite.flip_x = anim.flip_x;
+            sprite.image = anim.spritesheet.image.clone();
+            sprite.flip_x = anim.spritesheet.flip_x;
             match &mut sprite.texture_atlas {
                 Some(atlas) => {
-                    atlas.layout = anim.layout.clone();
-                    atlas.index = anim.first;
+                    atlas.layout = anim.spritesheet.layout.clone();
+                    atlas.index = anim.spritesheet.first;
                 }
                 None => {
                     sprite.texture_atlas = Some(TextureAtlas {
-                        layout: anim.layout.clone(),
-                        index: anim.first,
+                        layout: anim.spritesheet.layout.clone(),
+                        index: anim.spritesheet.first,
                     });
                 }
             }
@@ -63,10 +63,10 @@ fn tick_sprite_animators(
             continue;
         };
 
-        if atlas.index < anim.last {
+        if atlas.index < anim.spritesheet.last {
             atlas.index += 1;
         } else if anim.repeat {
-            atlas.index = anim.first;
+            atlas.index = anim.spritesheet.first;
         } else {
             animator.finished = true;
             ended.write(AnimationEnded { entity });

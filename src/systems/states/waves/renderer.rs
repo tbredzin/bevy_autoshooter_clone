@@ -1,3 +1,4 @@
+use crate::systems::animations::animation::SpriteAnimation;
 use crate::systems::animations::animator::SpriteAnimator;
 use crate::systems::constants::{tiles_to_pixels, TILES_X, TILES_Y};
 use crate::systems::game::MarkedForDespawn;
@@ -68,23 +69,17 @@ pub fn spawn_entities(
     mut commands: Commands,
     player: Option<Single<&Player>>,
     player_animations: Res<PlayerAnimations>,
+    animations: Res<Assets<SpriteAnimation>>,
     weapons_resource: Res<WeaponsLibrary>,
-    mut atlas: ResMut<Assets<TextureAtlasLayout>>,
-    assets: Res<AssetServer>,
 ) -> Result {
     if player.is_none() {
+        let player_anim = player_animations.get(IDLE, EAST).unwrap();
+        let sprite_anim = animations.get(player_anim.id()).unwrap();
         let player_entity = commands
             .spawn((
                 PlayerBundle::default(),
-                Sprite {
-                    image: PlayerAnimations::get_image_handle(assets.as_ref(), IDLE),
-                    texture_atlas: Some(TextureAtlas {
-                        layout: PlayerAnimations::get_layout(atlas.as_mut(), IDLE),
-                        index: 0,
-                    }),
-                    ..default()
-                },
-                SpriteAnimator::new(player_animations.get(IDLE, EAST).unwrap()),
+                sprite_anim.to_sprite(),
+                SpriteAnimator::new(player_anim),
                 Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(2.0)),
                 children![(
                     Sprite::from_image(player_animations.shadow_texture.clone()),

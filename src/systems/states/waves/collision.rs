@@ -17,7 +17,7 @@ pub fn check_bullet_enemy_collision(
 
         for (enemy_transform, mut enemy_health, enemy) in &mut enemy_query {
             let radius = enemy.kind.visual().radius;
-            let delta = bullet_pos - enemy_transform.translation();
+            let delta = bullet_pos.truncate() - enemy_transform.translation().truncate();
 
             if delta.length_squared() < radius * radius {
                 commands.entity(bullet_entity).insert(MarkedForDespawn);
@@ -41,11 +41,11 @@ pub fn check_player_enemy_collision(
     let Ok((player_entity, player_transform, mut player_health)) = player_query.single_mut() else {
         return;
     };
-    let player_pos = player_transform.translation();
+    let player_pos = player_transform.translation().truncate();
 
     // Check enemy bullets
     for (bullet_entity, bullet_transform, bullet) in &bullet_query {
-        let delta = player_pos - bullet_transform.translation();
+        let delta = player_pos - bullet_transform.translation().truncate();
         if delta.length_squared() < COLLISION_RADIUS_SQ {
             commands.entity(bullet_entity).insert(MarkedForDespawn);
             player_health.value = (player_health.value - bullet.damage).max(0.0);
@@ -58,7 +58,7 @@ pub fn check_player_enemy_collision(
     // Check enemy body
     for (enemy_transform, enemy) in &enemy_query {
         let radius = enemy.kind.visual().radius + 12.0; // player half-width
-        let distance_sq = player_pos.distance_squared(enemy_transform.translation());
+        let distance_sq = player_pos.distance_squared(enemy_transform.translation().truncate());
 
         if distance_sq < radius * radius {
             player_health.value -= enemy.damage * time.delta_secs();

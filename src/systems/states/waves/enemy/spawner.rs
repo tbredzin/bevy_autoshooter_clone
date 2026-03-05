@@ -16,14 +16,13 @@ pub fn prepare_spawn_enemies(
     mut wave_manager: ResMut<WaveManager>,
     player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
     time: Res<Time>,
-) -> Result {
+) {
     wave_manager.enemy_spawn_timer.tick(time.delta());
     if !wave_manager.enemy_spawn_timer.is_finished() {
-        return Ok(());
+        return;
     }
-
     let Ok(player_transform) = player_query.single() else {
-        return Ok(());
+        return;
     };
 
     let wave = wave_manager.wave;
@@ -42,7 +41,6 @@ pub fn prepare_spawn_enemies(
     wave_manager
         .enemy_spawn_timer
         .set_duration(std::time::Duration::from_secs_f32(base_rate.max(0.01)));
-    Ok(())
 }
 
 pub fn spawn_enemies(

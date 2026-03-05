@@ -1,6 +1,7 @@
 use crate::systems::animations::messages::AnimationEnded;
 use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::states::waves::components::{Action, Health};
+use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
@@ -19,6 +20,20 @@ pub fn update_wave_timer(
     wave_manager.wave_timer.tick(time.delta());
     if wave_manager.wave_timer.just_finished() {
         next_state.set(GameState::UpgradeSelection);
+    }
+}
+const Y_SORT_BASE: f32 = 25.0;
+const Y_SORT_SCALE: f32 = 0.01;
+
+pub fn y_sort_enemies(mut query: Query<&mut Transform, With<Enemy>>) {
+    for mut transform in &mut query {
+        transform.translation.z = Y_SORT_BASE - transform.translation.y * Y_SORT_SCALE;
+    }
+}
+
+pub fn y_sort_player(mut query: Query<&mut Transform, With<Player>>) {
+    for mut transform in &mut query {
+        transform.translation.z = Y_SORT_BASE - transform.translation.y * Y_SORT_SCALE;
     }
 }
 

@@ -1,6 +1,5 @@
-use crate::systems::animations::animation::SpriteAnimation;
+use crate::systems::animations::animation::{SpriteAnimation, Spritesheet};
 use crate::systems::animations::animator::count_frames;
-use crate::systems::animations::components::AnimationDuration;
 use crate::systems::states::waves::components::Direction;
 use crate::systems::states::waves::enemy::kinds::EnemyKind;
 use bevy::asset::{AssetServer, Assets, Handle};
@@ -14,6 +13,7 @@ const BASIC_MOB_SPRITESHEET_PATH: &str = "spritesheet/enemy/Pink_Monster.png";
 const FAST_MOB_SPRITESHEET_PATH: &str = "spritesheet/enemy/Owlet_Monster_Walk_6.png";
 const TANK_MOB_SPRITESHEET_PATH: &str = "spritesheet/enemy/Dude_Monster_Run_6.png";
 const MINIBOSS_MOB_SPRITESHEET_PATH: &str = "spritesheet/enemy/miniboss.png";
+const SPLITTER_MOB_SPRITESHEET_PATH: &str = "spritesheet/enemy/blob2.png";
 const SHADOW_SPRITE_PATH: &str = "spritesheet/player/shadow_sprite.png";
 
 #[derive(Resource)]
@@ -33,6 +33,10 @@ impl EnemyAnimations {
             EnemyKind::Fast => assets.load(FAST_MOB_SPRITESHEET_PATH),
             EnemyKind::Tank => assets.load(TANK_MOB_SPRITESHEET_PATH),
             EnemyKind::MiniBoss => assets.load(MINIBOSS_MOB_SPRITESHEET_PATH),
+            EnemyKind::Boss => assets.load(MINIBOSS_MOB_SPRITESHEET_PATH),
+            EnemyKind::Splitter | EnemyKind::SmallSplitter => {
+                assets.load(SPLITTER_MOB_SPRITESHEET_PATH)
+            }
             _ => assets.load(BASIC_MOB_SPRITESHEET_PATH),
         }
     }
@@ -49,27 +53,15 @@ impl EnemyAnimations {
                 None,
                 None,
             )),
-            EnemyKind::Fast => texture_atlas_layout.add(TextureAtlasLayout::from_grid(
-                UVec2::splat(32),
-                6,
-                1,
-                None,
-                None,
-            )),
-            EnemyKind::Tank => texture_atlas_layout.add(TextureAtlasLayout::from_grid(
-                UVec2::splat(32),
-                6,
-                1,
-                None,
-                None,
-            )),
-            EnemyKind::MiniBoss => texture_atlas_layout.add(TextureAtlasLayout::from_grid(
-                UVec2::splat(64),
-                6,
-                1,
-                None,
-                None,
-            )),
+            EnemyKind::Fast | EnemyKind::Tank => texture_atlas_layout.add(
+                TextureAtlasLayout::from_grid(UVec2::splat(32), 6, 1, None, None),
+            ),
+            EnemyKind::MiniBoss | EnemyKind::Boss => texture_atlas_layout.add(
+                TextureAtlasLayout::from_grid(UVec2::splat(64), 6, 1, None, None),
+            ),
+            EnemyKind::Splitter | EnemyKind::SmallSplitter => texture_atlas_layout.add(
+                TextureAtlasLayout::from_grid(UVec2::splat(32), 8, 3, None, None),
+            ),
             _ => texture_atlas_layout.add(TextureAtlasLayout::from_grid(
                 UVec2::splat(32),
                 8,
@@ -83,17 +75,6 @@ impl EnemyAnimations {
 
 impl FromWorld for EnemyAnimations {
     fn from_world(world: &mut World) -> Self {
-        let configs: &[(EnemyKind, usize, u64, bool)] = &[
-            (EnemyKind::Basic, 0, 120, true),
-            (EnemyKind::Ranged, 0, 120, true),
-            (EnemyKind::Fast, 0, 30, true),
-            (EnemyKind::Splitter, 0, 120, true),
-            (EnemyKind::SmallSplitter, 0, 120, true),
-            (EnemyKind::Tank, 0, 120, true),
-            (EnemyKind::MiniBoss, 0, 120, true),
-            (EnemyKind::Boss, 0, 120, true),
-        ];
-
         let direction_rows: &[(Direction, bool)] = &[
             (Direction::SOUTH, true),
             (Direction::WEST, true),
@@ -105,29 +86,85 @@ impl FromWorld for EnemyAnimations {
             (Direction::SOUTHEAST, false),
         ];
         let mut map = HashMap::new();
-        for (kind, row, frame_ms, looping) in configs {
+        for kind in EnemyKind::iterator() {
             for (dir, reversed) in direction_rows {
-                let image = { Self::get_image_handle(world.resource::<AssetServer>(), *kind) };
+                let image = { Self::get_image_handle(world.resource::<AssetServer>(), kind) };
                 let layout = {
                     Self::get_layout(
                         world.resource_mut::<Assets<TextureAtlasLayout>>().as_mut(),
-                        *kind,
+                        kind,
                     )
                 };
                 let nb_frames =
                     count_frames(world.resource::<Assets<TextureAtlasLayout>>(), &layout);
-                let mut anim =
-                    SpriteAnimation::from_row(image.clone(), layout.clone(), *row, nb_frames)
-                        .reversed(*reversed)
-                        .with_duration(AnimationDuration::PerFrame(Duration::from_millis(
-                            *frame_ms,
-                        )));
-                if *looping {
-                    anim = anim.looping();
-                }
+                let animation = match kind {
+                    EnemyKind::Splitter => SpriteAnimation {
+                        spritesheet: Spritesheet {
+                            image,
+                            layout,
+                            first: 0,
+                            last: 22,
+                            flip_x: *reversed,
+                            custom_size: Some(Vec2::splat(32.)),
+                        },
+                        frame_interval: Duration::from_millis(120),
+                        repeat: true,
+                    },
+                    EnemyKind::SmallSplitter => SpriteAnimation {
+                        spritesheet: Spritesheet {
+                            image,
+                            layout,
+                            first: 0,
+                            last: 22,
+                            flip_x: *reversed,
+                            custom_size: Some(Vec2::splat(16.)),
+                        },
+                        frame_interval: Duration::from_millis(120),
+                        repeat: true,
+                    },
+                    EnemyKind::MiniBoss => SpriteAnimation {
+                        frame_interval: Duration::from_millis(120),
+                        spritesheet: Spritesheet {
+                            first: 0,
+                            image,
+                            layout,
+                            last: nb_frames - 1,
+                            flip_x: !*reversed,
+                            custom_size: None,
+                        },
+                        repeat: true,
+                    },
+                    EnemyKind::Boss => SpriteAnimation {
+                        frame_interval: Duration::from_millis(120),
+                        spritesheet: Spritesheet {
+                            first: 0,
+                            image,
+                            layout,
+                            last: nb_frames - 1,
+                            flip_x: !*reversed,
+                            custom_size: Some(Vec2::splat(96.)),
+                        },
+                        repeat: true,
+                    },
+                    _ => SpriteAnimation {
+                        frame_interval: Duration::from_millis(120),
+                        spritesheet: Spritesheet {
+                            first: 0,
+                            image,
+                            layout,
+                            last: nb_frames - 1,
+                            flip_x: *reversed,
+                            custom_size: None,
+                        },
+                        repeat: true,
+                    },
+                };
+
                 map.insert(
-                    (*kind, *dir),
-                    world.resource_mut::<Assets<SpriteAnimation>>().add(anim),
+                    (kind, *dir),
+                    world
+                        .resource_mut::<Assets<SpriteAnimation>>()
+                        .add(animation),
                 );
             }
         }

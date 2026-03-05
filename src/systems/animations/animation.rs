@@ -4,13 +4,19 @@ use std::time::Duration;
 
 #[derive(Asset, TypePath, Clone)]
 pub struct SpriteAnimation {
+    pub spritesheet: Spritesheet,
+    pub frame_interval: Duration,
+    pub repeat: bool,
+}
+
+#[derive(Clone)]
+pub struct Spritesheet {
     pub image: Handle<Image>,
     pub layout: Handle<TextureAtlasLayout>,
     pub first: usize,
     pub last: usize,
-    pub frame_interval: Duration,
-    pub repeat: bool,
     pub flip_x: bool,
+    pub custom_size: Option<Vec2>,
 }
 
 impl SpriteAnimation {
@@ -22,29 +28,43 @@ impl SpriteAnimation {
     ) -> Self {
         let first = row * frames;
         Self {
-            image,
-            layout,
-            first,
-            last: first + frames - 1,
             frame_interval: Duration::from_millis(120),
+            spritesheet: Spritesheet {
+                first,
+                image,
+                layout,
+                last: first + frames - 1,
+                flip_x: false,
+                custom_size: None,
+            },
             repeat: false,
-            flip_x: false,
         }
     }
 
     pub fn with_duration(mut self, duration: AnimationDuration) -> Self {
-        let frame_count = self.last - self.first + 1;
+        let frame_count = self.spritesheet.last - self.spritesheet.first + 1;
         self.frame_interval = duration.frame_interval(frame_count);
         self
     }
 
-    pub fn looping(mut self) -> Self {
-        self.repeat = true;
+    pub fn looping(mut self, repeat: bool) -> Self {
+        self.repeat = repeat;
         self
     }
 
     pub fn reversed(mut self, reversed: bool) -> Self {
-        self.flip_x = reversed;
+        self.spritesheet.flip_x = reversed;
         self
+    }
+    pub(crate) fn to_sprite(&self) -> Sprite {
+        Sprite {
+            image: self.spritesheet.image.clone(),
+            texture_atlas: Some(TextureAtlas {
+                layout: self.spritesheet.layout.clone(),
+                index: self.spritesheet.first,
+            }),
+            custom_size: self.spritesheet.custom_size,
+            ..default()
+        }
     }
 }

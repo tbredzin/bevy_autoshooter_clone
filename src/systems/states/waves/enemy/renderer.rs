@@ -1,3 +1,4 @@
+use crate::systems::animations::animation::SpriteAnimation;
 use crate::systems::animations::animator::SpriteAnimator;
 use crate::systems::states::waves::components::Direction::EAST;
 use crate::systems::states::waves::enemy::components::{Enemy, Spawning};
@@ -39,20 +40,18 @@ pub fn on_enemy_spawning(mut world: DeferredWorld, context: HookContext) {
 
 pub fn on_enemy_spawned(mut world: DeferredWorld, context: HookContext) {
     let kind = { world.get::<Enemy>(context.entity).map(|e| e.kind).unwrap() };
-    let layout = {
-        EnemyAnimations::get_layout(
-            world.resource_mut::<Assets<TextureAtlasLayout>>().as_mut(),
-            kind,
-        )
-    };
-    let image = { EnemyAnimations::get_image_handle(world.resource::<AssetServer>(), kind) };
     let shadow = { world.resource::<EnemyAnimations>().shadow_texture.clone() };
-    let animation = {
+    let handle = {
         world
             .resource::<EnemyAnimations>()
             .get(kind, EAST)
             .expect(format!("{:?}/EAST must be registered", kind).as_str())
     };
+    let animation = world
+        .resource::<Assets<SpriteAnimation>>()
+        .get(handle.id())
+        .cloned()
+        .unwrap();
 
     world.commands().entity(context.entity).remove::<Mesh2d>();
     world
@@ -63,16 +62,11 @@ pub fn on_enemy_spawned(mut world: DeferredWorld, context: HookContext) {
     let mut transform = { world.get_mut::<Transform>(context.entity).unwrap() };
     *transform = transform.with_scale(Vec3::splat(2.0));
 
+    let mut shadow_image = Sprite::from_image(shadow);
+    shadow_image.custom_size = animation.to_sprite().custom_size;
     world.commands().entity(context.entity).insert((
-        Sprite {
-            image,
-            texture_atlas: Some(TextureAtlas { layout, index: 0 }),
-            ..default()
-        },
-        SpriteAnimator::new(animation),
-        children![(
-            Sprite::from_image(shadow),
-            Transform::from_xyz(-1.0, -6.0, 0.0),
-        )],
+        animation.to_sprite(),
+        SpriteAnimator::new(handle),
+        children![(shadow_image, Transform::from_xyz(-1.0, -6.0, 0.0),)],
     ));
 }

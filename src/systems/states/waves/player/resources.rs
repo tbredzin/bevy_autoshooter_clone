@@ -106,14 +106,12 @@ impl FromWorld for PlayerAnimations {
                 let image = { Self::get_image_handle(world.resource::<AssetServer>(), *action) };
                 let nb_frames =
                     count_frames(world.resource::<Assets<TextureAtlasLayout>>(), &layout);
-                let mut anim =
+                let anim =
                     SpriteAnimation::from_row(image.clone(), layout.clone(), *row, nb_frames)
                         .with_duration(AnimationDuration::PerFrame(Duration::from_millis(
                             *frame_ms,
-                        )));
-                if *looping {
-                    anim = anim.looping();
-                }
+                        )))
+                        .looping(*looping);
                 map.insert(
                     (*action, *dir),
                     world.resource_mut::<Assets<SpriteAnimation>>().add(anim),
