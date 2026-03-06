@@ -37,3 +37,6 @@ inherits = "release"
 opt-level = "s"
 # Strip all debugging information from the binary to slightly reduce file size.
 strip = "debuginfo"
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.4.2", features = ["wasm_js"] }
