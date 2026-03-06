@@ -21,6 +21,8 @@ pub struct Dying;
 
 #[derive(Component)]
 pub struct BackgroundMusic;
+#[derive(Component)]
+pub struct MusicFadeOut;
 
 #[derive(Component, PartialEq, Clone, Copy, Debug, Default, Hash, Eq)]
 pub enum Action {

@@ -105,35 +105,48 @@ fn main() {
         .add_systems(
             OnExit(GameState::InWave),
             (
-                waves::systems::stop_background_audio,
                 waves::renderer::despawn_background,
                 waves::renderer::despawn_entities,
                 hud::top::despawn_hud,
+                waves::systems::stop_background_audio,
             ),
         )
         .add_systems(
             Update,
             (
-                waves::systems::update_wave_timer,
-                player::movement::update_position,
-                player::experience::handle_enemy_death,
                 enemy::spawner::prepare_spawn_enemies,
                 enemy::spawner::spawn_enemies,
                 enemy::movement::move_to_player,
                 enemy::systems::check_if_dead,
+                enemy::shooter::update_enemy_shoot,
+                enemy::shooter::update_boss_shoot,
+                enemy::systems::handle_splitter_death,
+                enemy::renderer::render_spawning,
+            )
+                .run_if(in_state(GameState::InWave)),
+        )
+        .add_systems(
+            Update,
+            (
+                waves::systems::update_wave_timer,
+                waves::systems::check_game_is_over,
+                waves::renderer::animate_game_over,
+                waves::renderer::animate_player,
+                waves::renderer::animate_enemy,
+                waves::systems::update_background_audio,
+            )
+                .run_if(in_state(GameState::InWave)),
+        )
+        .add_systems(
+            Update,
+            (
+                player::movement::update_position,
+                player::experience::handle_enemy_death,
                 weapons::systems::update_weapon_positioning,
                 weapons::systems::auto_shoot,
                 weapons::systems::move_bullets,
                 collision::check_bullet_enemy_collision.after(weapons::systems::move_bullets),
                 collision::check_player_enemy_collision.after(weapons::systems::move_bullets),
-                enemy::renderer::render_spawning,
-                waves::systems::check_game_is_over,
-                waves::renderer::animate_game_over,
-                enemy::shooter::update_enemy_shoot,
-                enemy::shooter::update_boss_shoot,
-                enemy::systems::handle_splitter_death,
-                waves::renderer::animate_player,
-                waves::renderer::animate_enemy,
             )
                 .run_if(in_state(GameState::InWave)),
         )

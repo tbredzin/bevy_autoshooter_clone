@@ -1,4 +1,3 @@
-use crate::systems::constants::WAVE_DURATION;
 use crate::systems::game::GameState;
 use crate::systems::input::resources::ActionState;
 use crate::systems::states::shopping::components::NextWaveButton;
@@ -8,6 +7,7 @@ use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::{Changed, NextState, Query, Res, ResMut, With};
 use bevy::ui::Interaction;
+use std::time::Duration;
 
 pub fn start_next_wave(
     actions: Res<ActionState>,
@@ -23,10 +23,11 @@ pub fn start_next_wave(
         return;
     }
 
+    let wave_duration = wave_manager.wave_timer.duration().as_secs_f32();
     wave_manager.wave += 1;
     wave_manager
         .wave_timer
-        .set_duration(std::time::Duration::from_secs_f32(WAVE_DURATION));
+        .set_duration(Duration::from_secs_f32((wave_duration * 1.1).min(90.)));
 
     for (stats, mut xp, mut health) in &mut player_query {
         xp.new_levels = 0;

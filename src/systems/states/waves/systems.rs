@@ -6,7 +6,10 @@ use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
+use bevy::audio::Volume;
 use bevy::prelude::*;
+
+const MUSIC_FADEOUT_START_SECS: f32 = 5.0;
 
 pub fn play_background_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
     let num: u8 = rand::random_range(1..3);
@@ -20,11 +23,29 @@ pub fn play_background_audio(asset_server: Res<AssetServer>, mut commands: Comma
 
 pub fn stop_background_audio(
     mut commands: Commands,
-    mut audio_query: Query<Entity, With<BackgroundMusic>>,
+    audio_query: Query<Entity, With<BackgroundMusic>>,
 ) {
     if let Ok(audio) = audio_query.single() {
-        commands.entity(audio).despawn();
+        commands.entity(audio).insert(MarkedForDespawn);
     }
+}
+
+pub fn update_background_audio(
+    wave_manager: Res<WaveManager>,
+    mut audio_query: Query<&mut AudioSink, With<BackgroundMusic>>,
+) {
+    let remaining = wave_manager.wave_timer.remaining_secs();
+    if remaining >= MUSIC_FADEOUT_START_SECS {
+        return;
+    }
+
+    let Ok(mut sink) = audio_query.single_mut() else {
+        return;
+    };
+
+    // t goes 1.0 → 0.0 as remaining goes from MUSIC_FADEOUT_START_SECS → 0
+    let t = (remaining / MUSIC_FADEOUT_START_SECS).clamp(0.0, 1.0);
+    sink.set_volume(Volume::Linear(t));
 }
 
 pub fn reset_wave_timers(mut wave_manager: ResMut<WaveManager>) {

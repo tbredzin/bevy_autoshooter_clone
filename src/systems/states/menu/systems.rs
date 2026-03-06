@@ -1,9 +1,10 @@
-use crate::systems::game::GameState;
+use crate::systems::game::{GameState, MarkedForDespawn};
 use crate::systems::input::resources::ActionState;
 use crate::systems::states::menu::components::{
     AnimatedBorder, DividerSegment, QuitButton, StartButton, TitleWord,
 };
 use crate::systems::states::menu::renderer::{palette_color, DIVIDER_SEGMENTS};
+use crate::systems::states::waves::components::BackgroundMusic;
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
@@ -11,6 +12,24 @@ const TITLE_CYCLE_SPEED: f32 = 1.4;
 const BORDER_CYCLE_SPEED: f32 = 1.8;
 const DIVIDER_WAVE_SPEED: f32 = 2.2;
 const DIVIDER_WAVE_WIDTH: f32 = 2.5;
+
+pub fn play_background_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
+    let audio1 = asset_server.load("musics/intro.ogg".to_string());
+    commands.spawn((
+        BackgroundMusic,
+        AudioPlayer::new(audio1),
+        PlaybackSettings::LOOP,
+    ));
+}
+
+pub fn stop_background_audio(
+    mut commands: Commands,
+    audio_query: Query<Entity, With<BackgroundMusic>>,
+) {
+    if let Ok(audio) = audio_query.single() {
+        commands.entity(audio).insert(MarkedForDespawn);
+    }
+}
 
 pub fn handle_menu_input(
     actions: Res<ActionState>,

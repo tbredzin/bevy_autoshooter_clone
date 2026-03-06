@@ -15,15 +15,21 @@ pub fn draw_bullet(mut world: DeferredWorld, context: HookContext) {
     };
     let geo_meshes = world.resource::<GeometricMeshes>();
 
-    let (mesh, material2d) = {
+    let (mesh, material2d, sound) = {
         match bullet.kind {
             Shotgun => (
                 geo_meshes.square_large.clone(),
                 ColorMeshes::get_color(world.resource_mut::<Assets<ColorMaterial>>().as_mut(), RED),
+                world
+                    .resource_mut::<AssetServer>()
+                    .load("effects/bullet1.ogg".to_string()),
             ),
             Pistol => (
                 geo_meshes.circle_medium.clone(),
                 ColorMeshes::get_color(world.resource_mut::<Assets<ColorMaterial>>().as_mut(), RED),
+                world
+                    .resource_mut::<AssetServer>()
+                    .load("effects/bullet2.ogg".to_string()),
             ),
             MachineGun => (
                 geo_meshes.circle_small.clone(),
@@ -31,14 +37,19 @@ pub fn draw_bullet(mut world: DeferredWorld, context: HookContext) {
                     world.resource_mut::<Assets<ColorMaterial>>().as_mut(),
                     AQUA,
                 ),
+                world
+                    .resource_mut::<AssetServer>()
+                    .load("effects/bullet3.ogg".to_string()),
             ),
         }
     };
 
-    world
-        .commands()
-        .entity(context.entity)
-        .insert((Mesh2d(mesh), MeshMaterial2d(material2d)));
+    world.commands().entity(context.entity).insert((
+        Mesh2d(mesh),
+        MeshMaterial2d(material2d),
+        AudioPlayer::new(sound),
+        PlaybackSettings::ONCE,
+    ));
 }
 
 enum WeaponVisual {

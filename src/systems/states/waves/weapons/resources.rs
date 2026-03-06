@@ -1,6 +1,6 @@
 use crate::systems::constants::{tiles_to_pixels, BULLET_SPEED};
 use crate::systems::states::waves::weapons::components::Weapon;
-use crate::systems::states::waves::weapons::components::WeaponKind::MachineGun;
+use crate::systems::states::waves::weapons::components::WeaponKind::{MachineGun, Pistol, Shotgun};
 use bevy::asset::{Assets, Handle};
 use bevy::color::palettes::basic::BLACK;
 use bevy::color::palettes::css::PINK;
@@ -64,7 +64,7 @@ impl Default for WeaponsLibrary {
             weapons: vec![
                 Weapon {
                     kind: MachineGun,
-                    base_cooldown: 0.10,
+                    base_cooldown: 0.30,
                     base_damage: 5.0,
                     base_range: tiles_to_pixels(10.0),
                     damage_multiplier: 1.0,
@@ -72,26 +72,26 @@ impl Default for WeaponsLibrary {
                     range_multiplier: 1.0,
                     bullet_speed: BULLET_SPEED + 250.0,
                 },
-                // Weapon {
-                //     base_cooldown: 0.75,
-                //     base_damage: 7.0,
-                //     base_range: tiles_to_pixels(12.0),
-                //     kind: Pistol,
-                //     damage_multiplier: 1.0,
-                //     fire_rate_multiplier: 1.0,
-                //     range_multiplier: 1.0,
-                //     bullet_speed: BULLET_SPEED,
-                // },
-                // Weapon {
-                //     base_cooldown: 1.20,
-                //     base_damage: 18.0,
-                //     base_range: tiles_to_pixels(8.0),
-                //     kind: Shotgun,
-                //     damage_multiplier: 1.0,
-                //     fire_rate_multiplier: 1.0,
-                //     range_multiplier: 1.0,
-                //     bullet_speed: BULLET_SPEED - 100.0,
-                // },
+                Weapon {
+                    base_cooldown: 0.75,
+                    base_damage: 7.0,
+                    base_range: tiles_to_pixels(12.0),
+                    kind: Pistol,
+                    damage_multiplier: 1.0,
+                    fire_rate_multiplier: 1.0,
+                    range_multiplier: 1.0,
+                    bullet_speed: BULLET_SPEED,
+                },
+                Weapon {
+                    base_cooldown: 1.20,
+                    base_damage: 18.0,
+                    base_range: tiles_to_pixels(8.0),
+                    kind: Shotgun,
+                    damage_multiplier: 1.0,
+                    fire_rate_multiplier: 1.0,
+                    range_multiplier: 1.0,
+                    bullet_speed: BULLET_SPEED - 100.0,
+                },
             ],
         }
     }
