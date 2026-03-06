@@ -34,7 +34,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        title: "Bevy Auto Shooter".to_string(),
+                        title: "Trouble in Wonderland".to_string(),
                         resolution: WindowResolution::new(
                             WINDOW_WIDTH as u32,
                             WINDOW_HEIGHT as u32,
@@ -99,11 +99,13 @@ fn main() {
                 waves::renderer::spawn_entities,
                 waves::systems::reset_wave_timers,
                 enemy::spawner::spawn_boss.after(waves::renderer::spawn_entities),
+                waves::systems::play_background_audio,
             ),
         )
         .add_systems(
             OnExit(GameState::InWave),
             (
+                waves::systems::stop_background_audio,
                 waves::renderer::despawn_background,
                 waves::renderer::despawn_entities,
                 hud::top::despawn_hud,

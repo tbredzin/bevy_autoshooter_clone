@@ -1,12 +1,31 @@
 use crate::systems::animations::messages::AnimationEnded;
 use crate::systems::game::{GameOverStats, GameState, MarkedForDespawn};
 use crate::systems::states::waves::components::Action::DYING;
-use crate::systems::states::waves::components::{Action, Health};
+use crate::systems::states::waves::components::{Action, BackgroundMusic, Health};
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::*;
+
+pub fn play_background_audio(asset_server: Res<AssetServer>, mut commands: Commands) {
+    let num: u8 = rand::random_range(1..3);
+    let audio1 = asset_server.load(format!("musics/music{num}.ogg"));
+    commands.spawn((
+        BackgroundMusic,
+        AudioPlayer::new(audio1),
+        PlaybackSettings::LOOP,
+    ));
+}
+
+pub fn stop_background_audio(
+    mut commands: Commands,
+    mut audio_query: Query<Entity, With<BackgroundMusic>>,
+) {
+    if let Ok(audio) = audio_query.single() {
+        commands.entity(audio).despawn();
+    }
+}
 
 pub fn reset_wave_timers(mut wave_manager: ResMut<WaveManager>) {
     wave_manager.wave_timer.reset();

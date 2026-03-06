@@ -73,9 +73,9 @@ pub fn spawn_main_menu(mut commands: Commands) {
                             },
                             children![
                                 (
-                                    Text::new("WAR"),
+                                    Text::new("TROUBLE"),
                                     TextFont {
-                                        font_size: 96.0,
+                                        font_size: 32.0,
                                         ..default()
                                     },
                                     TextColor(Color::Srgba(INDIAN_RED)),

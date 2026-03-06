@@ -17,7 +17,10 @@ impl Default for Health {
 }
 
 #[derive(Component)]
-pub struct Dying {}
+pub struct Dying;
+
+#[derive(Component)]
+pub struct BackgroundMusic;
 
 #[derive(Component, PartialEq, Clone, Copy, Debug, Default, Hash, Eq)]
 pub enum Action {
