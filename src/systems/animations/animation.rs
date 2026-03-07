@@ -1,4 +1,3 @@
-use crate::systems::animations::components::AnimationDuration;
 use bevy::prelude::*;
 use std::time::Duration;
 
@@ -41,19 +40,13 @@ impl SpriteAnimation {
         }
     }
 
-    pub fn with_duration(mut self, duration: AnimationDuration) -> Self {
-        let frame_count = self.spritesheet.last - self.spritesheet.first + 1;
-        self.frame_interval = duration.frame_interval(frame_count);
+    pub fn with_duration(mut self, duration: Duration) -> Self {
+        self.frame_interval = duration;
         self
     }
 
     pub fn looping(mut self, repeat: bool) -> Self {
         self.repeat = repeat;
-        self
-    }
-
-    pub fn reversed(mut self, reversed: bool) -> Self {
-        self.spritesheet.flip_x = reversed;
         self
     }
     pub(crate) fn to_sprite(&self) -> Sprite {
