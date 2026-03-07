@@ -1,4 +1,4 @@
-use crate::systems::states::menu::components::{
+use crate::systems::states::gamemenu::components::{
     AnimatedBorder, DividerSegment, MainMenuUI, QuitButton, StartButton, TitleWord,
 };
 use bevy::color::palettes::css::*;
@@ -214,7 +214,7 @@ fn spawn_buttons(root: &mut RelatedSpawnerCommands<ChildOf>) {
                 BackgroundColor(Color::srgba(0.14, 0.06, 0.28, 0.92)),
                 BorderColor::all(MAGENTA),
                 children![(
-                    Text::new("x FLEE x"),
+                    Text::new("x EXIT x"),
                     TextFont {
                         font_size: 28.0,
                         ..default()

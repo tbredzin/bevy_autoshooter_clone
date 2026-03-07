@@ -1,7 +1,7 @@
 use bevy::prelude::Component;
 
 #[derive(Component)]
-pub struct MainMenuUI; // Root node of the entire main menu — despawned on OnExit.
+pub struct MainMenuUI; // Root node of the entire gamemenu gamemenu — despawned on OnExit.
 
 #[derive(Component)]
 pub struct TitleWord {

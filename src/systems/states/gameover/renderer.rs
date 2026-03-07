@@ -1,4 +1,4 @@
-use crate::systems::game::{GameOverStats, MarkedForDespawn};
+use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::states::gameover::components::{GameOverUI, RestartButton};
 use bevy::prelude::*;
 
@@ -12,6 +12,7 @@ pub fn spawn_game_over_ui(mut commands: Commands, stats: Res<GameOverStats>) {
 
     commands.spawn((
         GameOverUI,
+        DespawnOnExit(GameState::GameOver),
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -105,10 +106,6 @@ pub fn spawn_game_over_ui(mut commands: Commands, stats: Res<GameOverStats>) {
             ),
         ],
     ));
-}
-
-pub fn despawn_game_over_ui(mut commands: Commands, ui: Single<Entity, With<GameOverUI>>) {
-    commands.entity(ui.entity()).insert(MarkedForDespawn);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

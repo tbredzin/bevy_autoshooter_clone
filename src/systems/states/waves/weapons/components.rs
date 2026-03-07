@@ -1,8 +1,6 @@
-use crate::systems::states::waves::weapons::renderer;
 use bevy::math::Vec2;
-use bevy::prelude::{Component, Timer};
-use renderer::draw_bullet;
-use renderer::draw_weapon;
+use bevy::prelude::{Bundle, Component, Name, Timer};
+use bevy::time::TimerMode::Repeating;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum WeaponKind {
@@ -11,14 +9,14 @@ pub enum WeaponKind {
     Shotgun,
 }
 
-#[derive(Component, Clone)]
-#[component(on_add = draw_weapon)]
+#[derive(Component, Clone, Debug)]
 pub struct Weapon {
     pub base_damage: f32,
     pub base_cooldown: f32,
     pub base_range: f32,
     pub kind: WeaponKind,
-    pub bullet_speed: f32,
+    pub bullet_size: Vec2,
+    pub weapon_size: Vec2,
     // Calculated from PlayerStats:
     pub damage_multiplier: f32,
     pub fire_rate_multiplier: f32,
@@ -48,11 +46,27 @@ impl WeaponArea {
     }
 }
 
-#[derive(Component, Clone)]
-#[component(on_add = draw_bullet)]
+#[derive(Component, Clone, Debug)]
 pub struct Bullet {
     pub direction: Vec2,
     pub damage: f32,
     pub kind: WeaponKind,
-    pub speed: f32,
+}
+
+#[derive(Bundle, Clone)]
+pub struct WeaponBundle {
+    pub name: Name,
+    pub weapon: Weapon,
+    pub cooldown: WeaponCooldown,
+}
+impl WeaponBundle {
+    pub fn new(name: String, weapon: Weapon, cooldown: f32) -> Self {
+        Self {
+            name: Name::new(name),
+            weapon,
+            cooldown: WeaponCooldown {
+                timer: Timer::from_seconds(cooldown, Repeating),
+            },
+        }
+    }
 }

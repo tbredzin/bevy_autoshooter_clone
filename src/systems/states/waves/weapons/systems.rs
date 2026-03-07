@@ -1,13 +1,54 @@
 use crate::systems::constants::BULLET_SPEED;
+use crate::systems::game::GameState;
+use crate::systems::input::resources::ActionState;
 use crate::systems::states::waves::components::Dying;
 use crate::systems::states::waves::enemy::components::Enemy;
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::weapons::components::{
-    Bullet, Weapon, WeaponArea, WeaponCooldown,
+    Bullet, Weapon, WeaponArea, WeaponBundle, WeaponCooldown,
 };
+use crate::systems::states::waves::weapons::messages::{
+    BulletSpawnedMessage, WeaponSpawnedMessage,
+};
+use crate::systems::states::waves::weapons::resources::WeaponsLibrary;
 use crate::systems::states::waves::weapons::utils;
 use bevy::math::{Quat, Vec3};
-use bevy::prelude::{Commands, GlobalTransform, Query, Res, Time, Transform, With, Without};
+use bevy::prelude::*;
+use std::f32::consts;
+
+pub fn add_weapon(
+    mut commands: Commands,
+    mut actions: ResMut<ActionState>,
+    player: Single<(Entity, &Children), With<Player>>,
+    weapons_query: Query<&Weapon>,
+    weapons_resource: Res<WeaponsLibrary>,
+    mut events: MessageWriter<WeaponSpawnedMessage>,
+) {
+    if !actions.add_weapon {
+        return;
+    }
+    actions.add_weapon = false;
+
+    let index = rand::random_range(0..weapons_resource.weapons.len());
+    let weapon = weapons_resource.weapons.get(index).unwrap();
+    let (entity, children) = player.into_inner();
+    let weapons_count = weapons_query.iter_many(children).count();
+    let weapon_bundle = WeaponBundle::new(
+        format!("{:?}-{}", weapon.kind, weapons_count),
+        weapon.clone(),
+        weapon.base_cooldown,
+    );
+    println!("adding new weapon {:?}", weapon_bundle.name);
+
+    let weapon_entity = commands.spawn(weapon_bundle.clone()).id();
+    commands.entity(entity).add_child(weapon_entity);
+    events.write(WeaponSpawnedMessage {
+        name: weapon_bundle.name,
+        weapon: weapon_bundle.weapon,
+        entity: weapon_entity,
+        player: entity,
+    });
+}
 
 /// Smoothly moves and rotates weapons within their designated sectors to aim at nearest enemy
 pub fn update_weapon_positioning(
@@ -74,6 +115,7 @@ pub fn auto_shoot(
     player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
     weapons_query: Query<(&GlobalTransform, &mut Weapon, &mut WeaponCooldown)>,
     enemy_query: Query<&GlobalTransform, (With<Enemy>, Without<Player>)>,
+    mut events: MessageWriter<BulletSpawnedMessage>,
     time: Res<Time>,
 ) {
     if player_query.is_empty() {
@@ -100,21 +142,59 @@ pub fn auto_shoot(
         let spawn_offset = direction * 10.0; // push bullet forward by 20px
 
         // Spawn a new bullet toward that direction
-        commands.spawn((
-            Transform::from_translation(weapon_pos.extend(1.0)).with_translation(Vec3::new(
+        let transform = Transform::from_translation(weapon_pos.extend(1.0))
+            .with_translation(Vec3::new(
                 weapon_pos.x + spawn_offset.x,
                 weapon_pos.y + spawn_offset.y,
                 1.0,
-            )),
-            Bullet {
-                direction,
-                speed: weapon.bullet_speed,
-                damage: weapon.base_damage * weapon.damage_multiplier,
-                kind: weapon.kind,
-            },
-        ));
+            ))
+            .with_scale(weapon.bullet_size.extend(1.0));
+        let bullet = Bullet {
+            direction,
+            damage: weapon.base_damage * weapon.damage_multiplier,
+            kind: weapon.kind,
+        };
+        let entity = commands
+            .spawn((transform, bullet.clone(), DespawnOnExit(GameState::InWave)))
+            .id();
+
+        events.write(BulletSpawnedMessage {
+            entity,
+            bullet,
+            transform,
+        });
 
         // reset cooldown
         cooldown.timer.reset();
+    }
+}
+
+pub fn recalculate_weapon_area(
+    mut commands: Commands,
+    player_query: Query<&Children, With<Player>>,
+    weapon_query: Query<(Entity, &Name), With<Weapon>>,
+    mut events: MessageReader<WeaponSpawnedMessage>,
+) {
+    for event in events.read() {
+        let children = player_query.get(event.player).unwrap();
+        let total_weapons = weapon_query.iter_many(children).count();
+        let sector_arc = consts::TAU / (total_weapons as f32) * 0.8; // 80% of full sector,
+
+        // For each weapons of player
+        for (index, (entity, name)) in weapon_query.iter_many(children).enumerate() {
+            println!("Recalculating weapon area of weapon {:?}", name);
+            let orbit_radius = (10.0 * total_weapons as f32).max(20.0); // Distance from player center
+            let center_arc = consts::TAU * (index as f32) / (total_weapons as f32);
+            let angle = consts::TAU * (index as f32) / (total_weapons as f32);
+
+            commands.entity(entity).insert((
+                Transform::from_xyz(angle.cos() * orbit_radius, angle.sin() * orbit_radius, 0.0),
+                WeaponArea {
+                    orbit_radius,
+                    center_arc,
+                    sector_arc,
+                },
+            ));
+        }
     }
 }

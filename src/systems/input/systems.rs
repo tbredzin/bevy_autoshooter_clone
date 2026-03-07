@@ -58,6 +58,7 @@ fn collect_keyboard_actions(
         match key {
             KeyCode::Tab => actions.toggle_show_stats ^= true,
             KeyCode::F1 => actions.toggle_show_debug ^= true,
+            KeyCode::Backspace => actions.add_weapon ^= true,
             KeyCode::Unidentified(_) => {}
             _ => {}
         }

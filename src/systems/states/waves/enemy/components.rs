@@ -1,17 +1,13 @@
-use crate::systems::states::waves::enemy;
 use crate::systems::states::waves::enemy::kinds::EnemyKind;
 use bevy::prelude::{Component, Timer, TimerMode, Vec2};
-use enemy::renderer::{on_enemy_spawned, on_enemy_spawning};
 
 #[derive(Component)]
-#[component(on_add = on_enemy_spawning)]
 pub struct Spawning {
     pub timer: Timer,
     pub kind: EnemyKind,
 }
 
 #[derive(Component)]
-#[component(on_add = on_enemy_spawned)]
 pub struct Enemy {
     pub damage: f32,
     pub speed: f32,
@@ -27,7 +23,6 @@ pub struct Splitter {
 pub struct RangedAttack {
     pub timer: Timer,
     pub preferred_distance: f32,
-    pub projectile_speed: f32,
     pub projectile_damage: f32,
 }
 #[derive(Component)]

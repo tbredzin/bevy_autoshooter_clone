@@ -1,4 +1,5 @@
 use crate::systems::constants::{NEXT_LEVEL_RATIO_PERCENT, WAVE_DURATION};
+use crate::systems::game::GameState;
 use crate::systems::hud::components::{
     HUDBottomBorder, HUDHealthFill, HUDHealthText, HUDLevelText, HUDLevelUp, HUDLevelUps,
     HUDTimeFill, HUDTimeText, HUDTopBar, HUDWaveText, HUDXPFill, FILL_HEALTH, FILL_HEALTH_DANGER,
@@ -6,7 +7,7 @@ use crate::systems::hud::components::{
     TINT_TIMER, TINT_WAVE,
 };
 use crate::systems::hud::resources::HUDTextureAtlas;
-use crate::systems::states::menu::renderer::palette_color;
+use crate::systems::states::gamemenu::renderer::palette_color;
 use crate::systems::states::waves::components::Health;
 use crate::systems::states::waves::player::components::{Player, PlayerStats};
 use crate::systems::states::waves::player::experience::PlayerExperience;
@@ -34,6 +35,7 @@ pub fn spawn_hud(mut commands: Commands, sprites: Res<HUDTextureAtlas>) {
     commands
         .spawn((
             HUDTopBar,
+            DespawnOnExit(GameState::InWave),
             Node {
                 position_type: PositionType::Absolute,
                 left: Val::Px(0.0),
@@ -82,6 +84,7 @@ pub fn spawn_hud(mut commands: Commands, sprites: Res<HUDTextureAtlas>) {
     // ── Level-up indicators (top-right, unchanged behaviour) ─────────────────
     commands.spawn((
         HUDLevelUps {},
+        DespawnOnExit(GameState::InWave),
         Node {
             position_type: PositionType::Absolute,
             right: Val::Px(20.0),
@@ -95,16 +98,6 @@ pub fn spawn_hud(mut commands: Commands, sprites: Res<HUDTextureAtlas>) {
             ..default()
         },
     ));
-}
-
-// ── Despawn ───────────────────────────────────────────────────────────────────
-pub fn despawn_hud(
-    mut commands: Commands,
-    bar: Single<Entity, With<HUDTopBar>>,
-    levelups: Single<Entity, With<HUDLevelUps>>,
-) {
-    commands.entity(bar.entity()).despawn();
-    commands.entity(levelups.entity()).despawn();
 }
 
 // ── Per-frame update ──────────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+use crate::systems::game::GameState;
 use crate::systems::states::waves::components::Direction;
 use crate::systems::states::waves::enemy::components::{
     BossAttack, BossPhase, Enemy, Hostile, RangedAttack,
@@ -10,8 +11,8 @@ use bevy::color::Color;
 use bevy::math::Vec2;
 use bevy::mesh::{Mesh, Mesh2d};
 use bevy::prelude::{
-    Circle, ColorMaterial, Commands, GlobalTransform, MeshMaterial2d, Query, Res, ResMut, Time,
-    Timer, TimerMode, Transform, With, Without,
+    Circle, ColorMaterial, Commands, DespawnOnExit, GlobalTransform, MeshMaterial2d, Query, Res,
+    ResMut, Time, Timer, TimerMode, Transform, With, Without,
 };
 
 pub fn update_enemy_shoot(
@@ -49,12 +50,12 @@ pub fn update_enemy_shoot(
             Bullet {
                 kind: WeaponKind::Pistol,
                 direction,
-                speed: ranged.projectile_speed,
                 damage: ranged.projectile_damage,
             },
             Hostile,
             Mesh2d(meshes.add(Circle::new(5.0))),
             MeshMaterial2d(materials.add(proj_color)),
+            DespawnOnExit(GameState::InWave),
         ));
     }
 }
@@ -107,12 +108,12 @@ pub fn update_boss_shoot(
                             Bullet {
                                 kind: WeaponKind::Shotgun,
                                 direction: dir,
-                                speed: 260.0,
                                 damage: enemy.damage * 0.6,
                             },
                             Hostile,
                             Mesh2d(meshes.add(Circle::new(7.0))),
                             MeshMaterial2d(materials.add(proj_color)),
+                            DespawnOnExit(GameState::InWave),
                         ));
                     }
 

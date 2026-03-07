@@ -16,18 +16,10 @@ pub fn play_background_audio(asset_server: Res<AssetServer>, mut commands: Comma
     let audio1 = asset_server.load(format!("musics/music{num}.ogg"));
     commands.spawn((
         BackgroundMusic,
+        DespawnOnExit(GameState::InWave),
         AudioPlayer::new(audio1),
         PlaybackSettings::LOOP,
     ));
-}
-
-pub fn stop_background_audio(
-    mut commands: Commands,
-    audio_query: Query<Entity, With<BackgroundMusic>>,
-) {
-    if let Ok(audio) = audio_query.single() {
-        commands.entity(audio).insert(MarkedForDespawn);
-    }
 }
 
 pub fn update_background_audio(
@@ -56,16 +48,8 @@ pub fn reset_wave_timers(mut wave_manager: ResMut<WaveManager>) {
 pub fn update_wave_timer(
     mut wave_manager: ResMut<WaveManager>,
     mut next_state: ResMut<NextState<GameState>>,
-    mut player_query: Query<&Action, With<Player>>,
     time: Res<Time>,
 ) {
-    let Ok((action)) = player_query.single_mut() else {
-        return;
-    };
-    if *action == DYING {
-        return;
-    }
-
     wave_manager.wave_timer.tick(time.delta());
     if wave_manager.wave_timer.just_finished() {
         next_state.set(GameState::UpgradeSelection);

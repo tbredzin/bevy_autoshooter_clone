@@ -8,18 +8,16 @@ pub enum ActiveInputDevice {
 }
 #[derive(Resource, Default, Debug)]
 pub struct ActionState {
-    // ── Movement ─────────────────────────────────────────────────────────────
     pub movement: Vec2,
 
-    // ── HUD / meta ───────────────────────────────────────────────────────────
     pub toggle_show_stats: bool,
     pub toggle_show_debug: bool,
 
-    // ── Upgrade selection ────────────────────────────────────────────────────
     pub card_select: [bool; 4],
 
-    // ── Wave control ─────────────────────────────────────────────────────────
     pub start_next_wave: bool,
+
+    pub add_weapon: bool,
 }
 
 impl ActionState {

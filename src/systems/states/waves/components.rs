@@ -1,6 +1,6 @@
 use bevy::prelude::Component;
 #[derive(Component)]
-pub struct LevelBackground {}
+pub struct LevelBackground;
 
 #[derive(Component)]
 pub struct LevelOverlay;
@@ -21,8 +21,6 @@ pub struct Dying;
 
 #[derive(Component)]
 pub struct BackgroundMusic;
-#[derive(Component)]
-pub struct MusicFadeOut;
 
 #[derive(Component, PartialEq, Clone, Copy, Debug, Default, Hash, Eq)]
 pub enum Action {

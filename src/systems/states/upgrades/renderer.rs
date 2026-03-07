@@ -1,6 +1,6 @@
 // src/systems/upgrades/renderer
 use crate::systems::constants::NB_UPDATES_PER_LEVEL;
-use crate::systems::game::{GameState, MarkedForDespawn};
+use crate::systems::game::{GameState, TextBundle};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::resources::{ActiveInputDevice, GamepadAsset};
 use crate::systems::states::upgrades::animations::UpgradeCardAnimation;
@@ -19,25 +19,6 @@ const CARD_W: f32 = 230.0;
 const CARD_H: f32 = 340.0;
 const ICON_SIZE: f32 = 72.0;
 
-#[derive(Bundle)]
-pub struct TextBundle {
-    pub text: Text,
-    pub font: TextFont,
-    pub color: TextColor,
-}
-
-impl TextBundle {
-    pub fn new(text: impl Into<String>, font_size: f32, color: Color) -> Self {
-        Self {
-            text: Text::new(text),
-            font: TextFont {
-                font_size,
-                ..default()
-            },
-            color: TextColor::from(color),
-        }
-    }
-}
 pub fn spawn_upgrades_selection_ui(
     mut commands: Commands,
     upgrade_pool: Res<UpgradeCardsPool>,
@@ -57,6 +38,7 @@ pub fn spawn_upgrades_selection_ui(
 
     commands.spawn((
         UpgradeSelectionUI,
+        DespawnOnExit(GameState::UpgradeSelection),
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -74,13 +56,6 @@ pub fn spawn_upgrades_selection_ui(
             deck_bundle(upgrades, &sprites, &gamepad_asset),
         ],
     ));
-}
-
-pub fn despawn_upgrades_selection_ui(
-    mut commands: Commands,
-    ui: Single<Entity, With<UpgradeSelectionUI>>,
-) {
-    commands.entity(ui.entity()).insert(MarkedForDespawn);
 }
 
 pub fn update_card_buttons(

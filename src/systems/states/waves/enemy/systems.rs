@@ -1,12 +1,12 @@
-use crate::systems::game::MarkedForDespawn;
+use crate::systems::game::{GameState, MarkedForDespawn};
 use crate::systems::states::waves::components::Health;
 use crate::systems::states::waves::enemy::components::{Enemy, Spawning, Splitter};
 use crate::systems::states::waves::enemy::kinds::EnemyKind;
 use crate::systems::states::waves::enemy::messages::EnemyDeathMessage;
 use bevy::math::Vec2;
 use bevy::prelude::{
-    Commands, Entity, GlobalTransform, MessageReader, MessageWriter, Query, Timer, TimerMode,
-    Transform,
+    Commands, DespawnOnExit, Entity, GlobalTransform, MessageReader, MessageWriter, Query, Timer,
+    TimerMode, Transform,
 };
 
 pub fn check_if_dead(
@@ -17,8 +17,6 @@ pub fn check_if_dead(
     for (entity, health, enemy, transform, splitter) in query.iter() {
         if health.value <= 0.0 {
             message_writer.write(EnemyDeathMessage {
-                entity,
-                kind: enemy.kind,
                 position: transform.translation(),
                 xp_reward: enemy.xp_reward,
                 split_count: splitter.map(|s| s.split_count).unwrap_or(0),
@@ -48,6 +46,7 @@ pub fn handle_splitter_death(
                     timer: Timer::from_seconds(0.3, TimerMode::Once),
                     kind: EnemyKind::SmallSplitter,
                 },
+                DespawnOnExit(GameState::InWave),
             ));
         }
     }

@@ -1,9 +1,11 @@
 use crate::systems::constants::{tiles_to_pixels, ENEMY_SPAWN_TIME_IN_S, GAME_AREA, SPAWN_RATE};
+use crate::systems::game::GameState;
 use crate::systems::states::waves::components::{Direction, Dying, Health};
 use crate::systems::states::waves::enemy::components::{
     BossAttack, Enemy, RangedAttack, Spawning, Splitter,
 };
 use crate::systems::states::waves::enemy::kinds::EnemyKind;
+use crate::systems::states::waves::enemy::messages::{EnemySpawnedMessage, EnemySpawningMessage};
 use crate::systems::states::waves::player::components::Player;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::prelude::*;
@@ -11,10 +13,11 @@ use rand::distr::weighted::WeightedIndex;
 use rand::distr::Distribution;
 use rand::RngExt;
 
-pub fn prepare_spawn_enemies(
+pub fn create_enemy_spawning(
     mut commands: Commands,
     mut wave_manager: ResMut<WaveManager>,
     player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
+    mut events: MessageWriter<EnemySpawningMessage>,
     time: Res<Time>,
 ) {
     wave_manager.enemy_spawn_timer.tick(time.delta());
@@ -29,13 +32,17 @@ pub fn prepare_spawn_enemies(
     let kind = EnemyKind::random_for_wave(wave);
     let spawn_pos = generate_spawn_position(player_transform.translation().truncate());
 
-    commands.spawn((
-        Transform::from_translation(spawn_pos.extend(0.0)),
-        Spawning {
-            timer: Timer::from_seconds(ENEMY_SPAWN_TIME_IN_S, TimerMode::Once),
-            kind,
-        },
-    ));
+    let entity = commands
+        .spawn((
+            Transform::from_translation(spawn_pos.extend(0.0)),
+            Spawning {
+                timer: Timer::from_seconds(ENEMY_SPAWN_TIME_IN_S, TimerMode::Once),
+                kind,
+            },
+            DespawnOnExit(GameState::InWave),
+        ))
+        .id();
+    events.write(EnemySpawningMessage { entity, kind });
 
     let base_rate = SPAWN_RATE / wave as f32;
     wave_manager
@@ -45,15 +52,17 @@ pub fn prepare_spawn_enemies(
 
 pub fn spawn_enemies(
     mut commands: Commands,
-    mut pre_spawn_query: Query<(Entity, &mut Spawning)>,
+    mut pre_spawn_query: Query<(Entity, &mut Spawning, &Transform)>,
+    mut events: MessageWriter<EnemySpawnedMessage>,
     time: Res<Time>,
     wave_manager: Res<WaveManager>,
 ) {
-    for (entity, mut spawning) in &mut pre_spawn_query {
+    for (entity, mut spawning, transform) in &mut pre_spawn_query {
         spawning.timer.tick(time.delta());
         if !spawning.timer.is_finished() {
             continue;
         }
+        let transform = *transform;
         let kind = spawning.kind;
         let wave = wave_manager.wave;
         let stats = kind.stats(wave);
@@ -81,18 +90,23 @@ pub fn spawn_enemies(
                 entity_cmd.insert(RangedAttack {
                     timer: Timer::from_seconds(2.5, TimerMode::Repeating),
                     preferred_distance: 300.0,
-                    projectile_speed: 200.0,
                     projectile_damage: stats.contact_damage * 2.5,
                 });
             }
             _ => {}
         }
+        events.write(EnemySpawnedMessage {
+            entity,
+            kind,
+            transform,
+        });
     }
 }
 pub fn spawn_boss(
     mut commands: Commands,
     wave_manager: Res<WaveManager>,
     player_query: Query<&GlobalTransform, (With<Player>, Without<Dying>)>,
+    mut events: MessageWriter<EnemySpawnedMessage>,
 ) {
     let wave = wave_manager.wave;
 
@@ -111,8 +125,9 @@ pub fn spawn_boss(
     let spawn_pos = generate_spawn_position(player_transform.translation().truncate());
     let stats = kind.stats(wave);
 
+    let transform = Transform::from_translation(spawn_pos.extend(0.0));
     let mut entity_cmd = commands.spawn((
-        Transform::from_translation(spawn_pos.extend(0.0)),
+        transform,
         Direction::EAST,
         Enemy {
             damage: stats.contact_damage,
@@ -133,12 +148,17 @@ pub fn spawn_boss(
             entity_cmd.insert(RangedAttack {
                 timer: Timer::from_seconds(2.0, TimerMode::Repeating),
                 preferred_distance: 350.0,
-                projectile_speed: 230.0,
                 projectile_damage: stats.contact_damage * 0.7,
             });
         }
         _ => {}
     }
+
+    events.write(EnemySpawnedMessage {
+        entity: entity_cmd.id(),
+        kind,
+        transform,
+    });
 }
 
 // helper functions

@@ -1,6 +1,5 @@
 use crate::systems::animations::animation::SpriteAnimation;
 use crate::systems::animations::animator::count_frames;
-use crate::systems::animations::components::AnimationDuration;
 use crate::systems::states::waves::components::Action::IDLE;
 use crate::systems::states::waves::components::{Action, Direction};
 use bevy::asset::{AssetServer, Assets, Handle};
@@ -108,9 +107,7 @@ impl FromWorld for PlayerAnimations {
                     count_frames(world.resource::<Assets<TextureAtlasLayout>>(), &layout);
                 let anim =
                     SpriteAnimation::from_row(image.clone(), layout.clone(), *row, nb_frames)
-                        .with_duration(AnimationDuration::PerFrame(Duration::from_millis(
-                            *frame_ms,
-                        )))
+                        .with_duration(Duration::from_millis(*frame_ms))
                         .looping(*looping);
                 map.insert(
                     (*action, *dir),

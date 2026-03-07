@@ -1,6 +1,6 @@
 use crate::systems::game::GameState;
-use crate::systems::states::menu::renderer::{despawn_main_menu, spawn_main_menu};
-use crate::systems::states::menu::systems::{
+use crate::systems::states::gamemenu::renderer::{despawn_main_menu, spawn_main_menu};
+use crate::systems::states::gamemenu::systems::{
     animate_button_borders, animate_divider, animate_title_colors, handle_menu_input,
     play_background_audio, stop_background_audio,
 };

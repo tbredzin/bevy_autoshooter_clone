@@ -1,3 +1,4 @@
+use crate::systems::game::{GameState, TextBundle};
 use crate::systems::hud::components::{DisplayStatKind, StatsPopup, ICON_STATISTICS};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::resources::ActionState;
@@ -6,13 +7,13 @@ use crate::systems::states::waves::player::components::{Player, PlayerStats, Sta
 use crate::systems::states::waves::player::experience::PlayerExperience;
 use crate::systems::states::waves::resources::WaveManager;
 use bevy::color::Color;
-use bevy::ecs::relationship::RelatedSpawnerCommands;
+use bevy::ecs::children;
 use bevy::image::TextureAtlas;
 use bevy::prelude;
 use bevy::prelude::{
-    default, AlignItems, BackgroundColor, BorderColor, BorderRadius, ChildOf, Commands,
-    Entity, FlexDirection, ImageNode, JustifyContent, Node, PositionType, Query, Res, Text,
-    TextColor, TextFont, UiRect, Val, With,
+    default, AlignItems, BackgroundColor, BorderColor, BorderRadius, Bundle, Commands,
+    DespawnOnExit, Entity, FlexDirection, ImageNode, JustifyContent, Node, PositionType, Query, Res
+    , Text, UiRect, Val, With,
 };
 
 pub fn toggle_stats_popup(
@@ -35,41 +36,37 @@ pub fn toggle_stats_popup(
         return Ok(());
     }
 
-    commands
-        .spawn((
-            StatsPopup,
-            Node {
-                position_type: PositionType::Absolute,
-                right: Val::Px(20.0),
-                top: Val::Px(80.0),
-                padding: UiRect::all(Val::Px(20.0)),
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(12.0),
-                border: UiRect::all(Val::Px(3.0)),
-                border_radius: BorderRadius::all(Val::Px(10.0)), // ← now a Node field
-                ..default()
-            },
-            BackgroundColor(Color::srgba(0.1, 0.1, 0.15, 0.95)),
-            BorderColor::all(Color::srgb(0.3, 0.5, 0.8)),
-        ))
-        .with_children(|parent| {
-            spawn_stat_title(&sprites, parent);
-            spawn_stat_row(parent, DisplayStatKind::Level, &sprites);
-            spawn_stat_row(parent, DisplayStatKind::Experience, &sprites);
-            spawn_separator(parent);
-            for stat_kind in [
-                StatKind::Damage,
-                StatKind::FireRate,
-                StatKind::Range,
-                StatKind::Speed,
-            ] {
-                spawn_stat_row(parent, DisplayStatKind::PlayerStat(stat_kind), &sprites);
-            }
-            spawn_separator(parent);
-            spawn_stat_row(parent, DisplayStatKind::Health, &sprites);
-            spawn_separator(parent);
-            spawn_stat_row(parent, DisplayStatKind::Wave, &sprites);
-        });
+    commands.spawn((
+        StatsPopup,
+        DespawnOnExit(GameState::InWave),
+        Node {
+            position_type: PositionType::Absolute,
+            right: Val::Px(20.0),
+            top: Val::Px(80.0),
+            padding: UiRect::all(Val::Px(20.0)),
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(12.0),
+            border: UiRect::all(Val::Px(3.0)),
+            border_radius: BorderRadius::all(Val::Px(10.0)), // ← now a Node field
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.1, 0.1, 0.15, 0.95)),
+        BorderColor::all(Color::srgb(0.3, 0.5, 0.8)),
+        children![
+            stat_title(&sprites),
+            stat_row(DisplayStatKind::Level, &sprites),
+            stat_row(DisplayStatKind::Experience, &sprites),
+            separator(),
+            stat_row(DisplayStatKind::PlayerStat(StatKind::Damage), &sprites),
+            stat_row(DisplayStatKind::PlayerStat(StatKind::FireRate), &sprites),
+            stat_row(DisplayStatKind::PlayerStat(StatKind::Range), &sprites),
+            stat_row(DisplayStatKind::PlayerStat(StatKind::Speed), &sprites),
+            separator(),
+            stat_row(DisplayStatKind::Health, &sprites),
+            separator(),
+            stat_row(DisplayStatKind::Wave, &sprites)
+        ],
+    ));
     Ok(())
 }
 
@@ -94,8 +91,8 @@ pub fn update_stats_popup(
 }
 
 // Helper function to create a separator
-fn spawn_separator(parent: &mut RelatedSpawnerCommands<ChildOf>) {
-    parent.spawn((
+fn separator() -> impl Bundle {
+    (
         Node {
             width: Val::Percent(100.0),
             height: Val::Px(2.0),
@@ -103,25 +100,25 @@ fn spawn_separator(parent: &mut RelatedSpawnerCommands<ChildOf>) {
             ..default()
         },
         BackgroundColor(Color::srgba(0.5, 0.5, 0.6, 0.3)),
-    ));
+    )
 }
 
-fn spawn_stat_title(sprites: &Res<HUDTextureAtlas>, parent: &mut RelatedSpawnerCommands<ChildOf>) {
-    parent
-        .spawn(Node {
+fn stat_title(sprites: &Res<HUDTextureAtlas>) -> impl Bundle {
+    (
+        Node {
             width: Val::Percent(100.0),
             justify_content: JustifyContent::SpaceBetween,
             align_items: AlignItems::Center,
             ..default()
-        })
-        .with_children(|row| {
-            row.spawn(Node {
+        },
+        children![(
+            Node {
                 column_gap: Val::Px(8.0),
                 align_items: AlignItems::Center,
                 ..default()
-            })
-            .with_children(|label_container| {
-                label_container.spawn((
+            },
+            children![
+                (
                     ImageNode::from_atlas_image(
                         sprites.texture.clone(),
                         TextureAtlas {
@@ -135,44 +132,36 @@ fn spawn_stat_title(sprites: &Res<HUDTextureAtlas>, parent: &mut RelatedSpawnerC
                         height: Val::Px(20.0),
                         ..default()
                     },
-                ));
-                label_container.spawn((
-                    Text::new("CHARACTER STATS"),
-                    TextFont {
-                        font_size: 26.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0.9, 0.9, 1.0)),
+                ),
+                (
+                    TextBundle::new("CHARACTER STATS", 26.0, Color::srgb(0.9, 0.9, 1.0)),
                     Node {
                         margin: UiRect::bottom(Val::Px(10.0)),
                         ..default()
                     },
-                ));
-            });
-        });
+                )
+            ]
+        )],
+    )
 }
 
-fn spawn_stat_row(
-    parent: &mut RelatedSpawnerCommands<ChildOf>,
-    display_kind: DisplayStatKind,
-    sprites: &Res<HUDTextureAtlas>,
-) {
+fn stat_row(display_kind: DisplayStatKind, sprites: &Res<HUDTextureAtlas>) -> impl Bundle {
     let (texture_index, label, color) = display_kind.get_display_info();
-    parent
-        .spawn(Node {
+    (
+        Node {
             width: Val::Percent(100.0),
             justify_content: JustifyContent::SpaceBetween,
             align_items: AlignItems::Center,
             ..default()
-        })
-        .with_children(|row| {
-            row.spawn(Node {
+        },
+        children![(
+            Node {
                 column_gap: Val::Px(8.0),
                 align_items: AlignItems::Center,
                 ..default()
-            })
-            .with_children(|label_container| {
-                label_container.spawn((
+            },
+            children![
+                (
                     ImageNode::from_atlas_image(
                         sprites.texture.clone(),
                         TextureAtlas {
@@ -185,31 +174,15 @@ fn spawn_stat_row(
                         height: Val::Px(16.0),
                         ..default()
                     },
-                ));
-                label_container.spawn((
-                    Text::new(label),
-                    TextFont {
-                        font_size: 18.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0.85, 0.85, 0.9)),
-                ));
-                label_container.spawn((Node {
+                ),
+                (TextBundle::new(label, 18., Color::srgb(0.85, 0.85, 0.9)),),
+                (Node {
                     width: Val::Px(16.0),
                     height: Val::Px(16.0),
                     ..default()
-                },));
-            });
-
-            // Value - will be updated by update_stats_display
-            row.spawn((
-                Text::new(""),
-                TextFont {
-                    font_size: 20.0,
-                    ..default()
-                },
-                TextColor(color),
-                display_kind,
-            ));
-        });
+                }),
+                (TextBundle::new("", 20., color), display_kind,)
+            ],
+        )],
+    )
 }

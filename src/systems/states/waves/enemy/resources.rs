@@ -1,5 +1,4 @@
 use crate::systems::animations::animation::{SpriteAnimation, Spritesheet};
-use crate::systems::animations::animator::count_frames;
 use crate::systems::states::waves::components::Direction;
 use crate::systems::states::waves::enemy::kinds::EnemyKind;
 use bevy::asset::{AssetServer, Assets, Handle};
@@ -62,7 +61,7 @@ impl EnemyAnimations {
             EnemyKind::Splitter | EnemyKind::SmallSplitter => texture_atlas_layout.add(
                 TextureAtlasLayout::from_grid(UVec2::splat(32), 8, 3, None, None),
             ),
-            _ => texture_atlas_layout.add(TextureAtlasLayout::from_grid(
+            EnemyKind::Ranged => texture_atlas_layout.add(TextureAtlasLayout::from_grid(
                 UVec2::splat(32),
                 8,
                 1,
@@ -95,8 +94,6 @@ impl FromWorld for EnemyAnimations {
                         kind,
                     )
                 };
-                let nb_frames =
-                    count_frames(world.resource::<Assets<TextureAtlasLayout>>(), &layout);
                 let animation = match kind {
                     EnemyKind::Splitter => SpriteAnimation {
                         spritesheet: Spritesheet {
@@ -128,7 +125,7 @@ impl FromWorld for EnemyAnimations {
                             first: 0,
                             image,
                             layout,
-                            last: nb_frames - 1,
+                            last: 5,
                             flip_x: !*reversed,
                             custom_size: None,
                         },
@@ -140,19 +137,43 @@ impl FromWorld for EnemyAnimations {
                             first: 0,
                             image,
                             layout,
-                            last: nb_frames - 1,
+                            last: 5,
                             flip_x: !*reversed,
                             custom_size: Some(Vec2::splat(96.)),
                         },
                         repeat: true,
                     },
-                    _ => SpriteAnimation {
+                    EnemyKind::Basic | EnemyKind::Ranged => SpriteAnimation {
                         frame_interval: Duration::from_millis(120),
                         spritesheet: Spritesheet {
                             first: 0,
                             image,
                             layout,
-                            last: nb_frames - 1,
+                            last: 7,
+                            flip_x: *reversed,
+                            custom_size: None,
+                        },
+                        repeat: true,
+                    },
+                    EnemyKind::Fast => SpriteAnimation {
+                        frame_interval: Duration::from_millis(60),
+                        spritesheet: Spritesheet {
+                            first: 0,
+                            image,
+                            layout,
+                            last: 5,
+                            flip_x: *reversed,
+                            custom_size: None,
+                        },
+                        repeat: true,
+                    },
+                    EnemyKind::Tank => SpriteAnimation {
+                        frame_interval: Duration::from_millis(120),
+                        spritesheet: Spritesheet {
+                            first: 0,
+                            image,
+                            layout,
+                            last: 5,
                             flip_x: *reversed,
                             custom_size: None,
                         },

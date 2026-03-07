@@ -1,9 +1,9 @@
 use crate::systems::game::{GameState, MarkedForDespawn};
 use crate::systems::input::resources::ActionState;
-use crate::systems::states::menu::components::{
+use crate::systems::states::gamemenu::components::{
     AnimatedBorder, DividerSegment, QuitButton, StartButton, TitleWord,
 };
-use crate::systems::states::menu::renderer::{palette_color, DIVIDER_SEGMENTS};
+use crate::systems::states::gamemenu::renderer::{palette_color, DIVIDER_SEGMENTS};
 use crate::systems::states::waves::components::BackgroundMusic;
 use bevy::app::AppExit;
 use bevy::prelude::*;

@@ -5,17 +5,20 @@ use crate::systems::game::{GameOverStats, GameState};
 use crate::systems::hud::resources::HUDTextureAtlas;
 use crate::systems::input::plugin::InputPlugin;
 use crate::systems::input::resources::{GamepadAsset, KeyboardAsset};
-use crate::systems::states::menu::plugin::MainMenuPlugin;
+use crate::systems::states::gamemenu::plugin::MainMenuPlugin;
 use crate::systems::states::upgrades::resources::{RedrawCardsPool, UpgradeCardsPool};
+use crate::systems::states::waves::enemy::messages::{EnemySpawnedMessage, EnemySpawningMessage};
 use crate::systems::states::waves::enemy::resources::EnemyAnimations;
 use crate::systems::states::waves::resources::TilesTextureAtlas;
-use crate::systems::states::waves::weapons::resources::{
-    ColorMeshes, GeometricMeshes, WeaponsLibrary,
+use crate::systems::states::waves::weapons::messages::{
+    BulletSpawnedMessage, WeaponSpawnedMessage,
 };
+use crate::systems::states::waves::weapons::resources::WeaponsLibrary;
 use crate::systems::states::{gameover, shopping, waves};
 use bevy::prelude::*;
 use bevy::window::WindowResolution;
 use bevy::winit::{UpdateMode, WinitSettings};
+use messages::EnemyDeathMessage;
 use states::upgrades;
 use std::time::Duration;
 use systems::constants::{WINDOW_HEIGHT, WINDOW_WIDTH};
@@ -65,6 +68,8 @@ fn main() {
             focused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
             unfocused_mode: UpdateMode::reactive(Duration::from_secs_f32(1.0 / 60.0)),
         })
+        .insert_resource(game::MusicVolume(5))
+        .insert_resource(game::SoundEffectVolume(7))
         .init_resource::<UpgradeCardsPool>()
         .init_resource::<RedrawCardsPool>()
         .init_resource::<WaveManager>()
@@ -72,8 +77,6 @@ fn main() {
         .init_resource::<HUDTextureAtlas>()
         .init_resource::<GamepadAsset>()
         .init_resource::<KeyboardAsset>()
-        .init_resource::<GeometricMeshes>()
-        .init_resource::<ColorMeshes>()
         .init_resource::<WeaponsLibrary>()
         .init_resource::<GameOverStats>()
         .init_resource::<PlayerAnimations>()
@@ -84,7 +87,7 @@ fn main() {
             (
                 game::out_of_bounds_system,
                 game::despawn_marked_entities,
-                debug::debug_button_pressed,
+                debug::handle_button_pressed,
                 hud::top::update_level_up_indicator,
                 hud::top::animate_hud_border,
             ),
@@ -96,57 +99,48 @@ fn main() {
             (
                 hud::top::spawn_hud,
                 waves::renderer::spawn_background,
-                waves::renderer::spawn_entities,
+                game::spawn_player,
                 waves::systems::reset_wave_timers,
-                enemy::spawner::spawn_boss.after(waves::renderer::spawn_entities),
+                enemy::spawner::spawn_boss.after(game::spawn_player),
                 waves::systems::play_background_audio,
-            ),
-        )
-        .add_systems(
-            OnExit(GameState::InWave),
-            (
-                waves::renderer::despawn_background,
-                waves::renderer::despawn_entities,
-                hud::top::despawn_hud,
-                waves::systems::stop_background_audio,
             ),
         )
         .add_systems(
             Update,
             (
-                enemy::spawner::prepare_spawn_enemies,
+                enemy::spawner::create_enemy_spawning,
                 enemy::spawner::spawn_enemies,
                 enemy::movement::move_to_player,
                 enemy::systems::check_if_dead,
                 enemy::shooter::update_enemy_shoot,
                 enemy::shooter::update_boss_shoot,
                 enemy::systems::handle_splitter_death,
-                enemy::renderer::render_spawning,
-            )
-                .run_if(in_state(GameState::InWave)),
-        )
-        .add_systems(
-            Update,
-            (
                 waves::systems::update_wave_timer,
                 waves::systems::check_game_is_over,
-                waves::renderer::animate_game_over,
-                waves::renderer::animate_player,
-                waves::renderer::animate_enemy,
-                waves::systems::update_background_audio,
-            )
-                .run_if(in_state(GameState::InWave)),
-        )
-        .add_systems(
-            Update,
-            (
                 player::movement::update_position,
                 player::experience::handle_enemy_death,
                 weapons::systems::update_weapon_positioning,
+                weapons::systems::add_weapon,
                 weapons::systems::auto_shoot,
                 weapons::systems::move_bullets,
+                weapons::systems::recalculate_weapon_area.after(weapons::systems::add_weapon),
                 collision::check_bullet_enemy_collision.after(weapons::systems::move_bullets),
                 collision::check_player_enemy_collision.after(weapons::systems::move_bullets),
+            )
+                .run_if(in_state(GameState::InWave)),
+        )
+        .add_systems(
+            PostUpdate,
+            (
+                waves::renderer::animate_game_over,
+                waves::renderer::animate_player,
+                waves::renderer::animate_enemy,
+                weapons::renderer::render_bullet,
+                weapons::renderer::render_weapon,
+                enemy::renderer::update_spawning,
+                enemy::renderer::handle_enemy_spawning,
+                enemy::renderer::handle_enemy_spawned,
+                waves::systems::update_background_audio,
             )
                 .run_if(in_state(GameState::InWave)),
         )
@@ -168,10 +162,6 @@ fn main() {
             upgrades::renderer::spawn_upgrades_selection_ui,
         )
         .add_systems(
-            OnExit(GameState::UpgradeSelection),
-            upgrades::renderer::despawn_upgrades_selection_ui,
-        )
-        .add_systems(
             Update,
             (
                 upgrades::systems::update_active_upgrade_card,
@@ -190,10 +180,6 @@ fn main() {
             shopping::renderer::spawn_shopping,
         )
         .add_systems(
-            OnExit(GameState::Shopping),
-            shopping::renderer::despawn_shopping,
-        )
-        .add_systems(
             Update,
             (
                 shopping::systems::start_next_wave,
@@ -207,10 +193,6 @@ fn main() {
             gameover::renderer::spawn_game_over_ui,
         )
         .add_systems(
-            OnExit(GameState::GameOver),
-            gameover::renderer::despawn_game_over_ui,
-        )
-        .add_systems(
             Update,
             (
                 gameover::systems::handle_restart,
@@ -218,6 +200,10 @@ fn main() {
             )
                 .run_if(in_state(GameState::GameOver)),
         )
-        .add_message::<messages::EnemyDeathMessage>()
+        .add_message::<EnemyDeathMessage>()
+        .add_message::<EnemySpawningMessage>()
+        .add_message::<EnemySpawnedMessage>()
+        .add_message::<BulletSpawnedMessage>()
+        .add_message::<WeaponSpawnedMessage>()
         .run();
 }

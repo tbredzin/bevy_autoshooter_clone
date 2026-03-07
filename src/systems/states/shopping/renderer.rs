@@ -1,4 +1,4 @@
-use crate::systems::game::MarkedForDespawn;
+use crate::systems::game::GameState;
 use crate::systems::states::shopping::components::{NextWaveButton, ShoppingUI};
 use bevy::prelude::*;
 
@@ -6,6 +6,7 @@ pub fn spawn_shopping(mut commands: Commands) {
     commands
         .spawn((
             ShoppingUI,
+            DespawnOnExit(GameState::Shopping),
             Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -52,13 +53,6 @@ pub fn spawn_shopping(mut commands: Commands) {
             ));
         });
 }
-
-pub fn despawn_shopping(mut commands: Commands, ui: Query<Entity, With<ShoppingUI>>) {
-    for e in ui {
-        commands.entity(e).insert(MarkedForDespawn);
-    }
-}
-
 pub fn update_start_button_interaction(
     mut query: Query<(&Interaction, &mut BackgroundColor, &mut BorderColor), With<NextWaveButton>>,
 ) {

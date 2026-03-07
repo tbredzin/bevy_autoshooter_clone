@@ -1,100 +1,53 @@
 use crate::systems::states::waves::weapons::components::WeaponKind::{MachineGun, Pistol, Shotgun};
-use crate::systems::states::waves::weapons::components::{Bullet, Weapon};
-use crate::systems::states::waves::weapons::resources::{ColorMeshes, GeometricMeshes};
+use crate::systems::states::waves::weapons::messages::{
+    BulletSpawnedMessage, WeaponSpawnedMessage,
+};
 use bevy::color::palettes::basic::{AQUA, RED};
-use bevy::ecs::lifecycle::HookContext;
-use bevy::ecs::world::DeferredWorld;
-use bevy::mesh::Mesh2d;
+use bevy::color::palettes::css::BLUE;
 use bevy::prelude::*;
-use std::f32::consts::FRAC_PI_2;
-
-pub fn draw_bullet(mut world: DeferredWorld, context: HookContext) {
-    // Create mesh and material
-    let Some(bullet) = world.get::<Bullet>(context.entity) else {
-        return;
-    };
-    let geo_meshes = world.resource::<GeometricMeshes>();
-
-    let (mesh, material2d, sound) = {
-        match bullet.kind {
-            Shotgun => (
-                geo_meshes.square_large.clone(),
-                ColorMeshes::get_color(world.resource_mut::<Assets<ColorMaterial>>().as_mut(), RED),
-                world
-                    .resource_mut::<AssetServer>()
-                    .load("effects/bullet1.ogg".to_string()),
-            ),
-            Pistol => (
-                geo_meshes.circle_medium.clone(),
-                ColorMeshes::get_color(world.resource_mut::<Assets<ColorMaterial>>().as_mut(), RED),
-                world
-                    .resource_mut::<AssetServer>()
-                    .load("effects/bullet2.ogg".to_string()),
-            ),
-            MachineGun => (
-                geo_meshes.circle_small.clone(),
-                ColorMeshes::get_color(
-                    world.resource_mut::<Assets<ColorMaterial>>().as_mut(),
-                    AQUA,
+pub fn render_bullet(
+    mut commands: Commands,
+    mut events: MessageReader<BulletSpawnedMessage>,
+    assets: Res<AssetServer>,
+) {
+    for event in events.read() {
+        let (sprite, sound) = {
+            match event.bullet.kind {
+                Shotgun => (
+                    Sprite::from_color(RED, event.transform.scale.truncate()),
+                    assets.load("effects/bullet1.ogg"),
                 ),
-                world
-                    .resource_mut::<AssetServer>()
-                    .load("effects/bullet3.ogg".to_string()),
-            ),
-        }
-    };
-
-    world.commands().entity(context.entity).insert((
-        Mesh2d(mesh),
-        MeshMaterial2d(material2d),
-        AudioPlayer::new(sound),
-        PlaybackSettings::ONCE,
-    ));
+                Pistol => (
+                    Sprite::from_color(BLUE, event.transform.scale.truncate()),
+                    assets.load("effects/bullet2.ogg"),
+                ),
+                MachineGun => (
+                    Sprite::from_color(AQUA, event.transform.scale.truncate()),
+                    assets.load("effects/bullet3.ogg"),
+                ),
+            }
+        };
+        commands.entity(event.entity).insert((
+            sprite,
+            AudioPlayer::new(sound),
+            PlaybackSettings::ONCE,
+        ));
+    }
 }
 
-enum WeaponVisual {
-    Mesh(Handle<Mesh>, Handle<ColorMaterial>),
-    Custom(Box<dyn FnOnce(&mut EntityCommands)>),
-}
-pub fn draw_weapon(mut world: DeferredWorld, context: HookContext) {
-    let visual = {
-        let weapon_kind = world.get::<Weapon>(context.entity).unwrap().kind;
-        let image = world.resource::<AssetServer>().load("sprites/wand.png");
-
-        match weapon_kind {
-            MachineGun => WeaponVisual::Custom(Box::new(|cmd| {
-                let child = cmd
-                    .commands()
-                    .spawn((
-                        Sprite::from_image(image),
-                        Transform::from_rotation(Quat::from_rotation_z(3.0 * FRAC_PI_2))
-                            .with_scale(Vec3::splat(0.75)),
-                    ))
-                    .id();
-                cmd.add_child(child);
-            })),
-            Shotgun => {
-                let geos = world.resource::<GeometricMeshes>();
-                let colors = world.resource::<ColorMeshes>();
-                WeaponVisual::Mesh(geos.rectangle_large.clone(), colors.red.clone())
-            }
-            Pistol => {
-                let geos = world.resource::<GeometricMeshes>();
-                let colors = world.resource::<ColorMeshes>();
-                WeaponVisual::Mesh(geos.rectangle_small.clone(), colors.black.clone())
-            }
-        }
-    };
-
-    match visual {
-        WeaponVisual::Mesh(mesh, material) => {
-            world
-                .commands()
-                .entity(context.entity)
-                .insert((Mesh2d(mesh), MeshMaterial2d(material)));
-        }
-        WeaponVisual::Custom(f) => {
-            f(&mut world.commands().entity(context.entity));
-        }
+pub fn render_weapon(
+    mut commands: Commands,
+    assets: ResMut<AssetServer>,
+    mut events: MessageReader<WeaponSpawnedMessage>,
+) {
+    for event in events.read() {
+        debug!("Weapon {:?} spawned: {:?}", event.name, event);
+        commands
+            .entity(event.entity)
+            .insert((match event.weapon.kind {
+                Shotgun => Sprite::from_color(RED, event.weapon.weapon_size),
+                Pistol => Sprite::from_color(BLUE, event.weapon.weapon_size),
+                MachineGun => Sprite::from_image(assets.load("sprites/wand.png")),
+            },));
     }
 }
